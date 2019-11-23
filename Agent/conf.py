@@ -1,6 +1,6 @@
 import platform
 import os
-
+import socket
 
 class Globals:
     def __init__(self):
@@ -13,6 +13,7 @@ class Globals:
         self._host="127.0.0.1"
         self._dir=os.path.dirname(os.path.realpath(__file__))
         self._conf=os.path.join(self._dir,"conf/")
+        self._name=socket.gethostname()
         with open("version") as f:
             print(tuple(f.read().split(".")))
 
@@ -25,7 +26,16 @@ class Globals:
     def isWindows():
         return Globals.instance._os.lower()=="windows"
 
-
+    @staticmethod
+    def getAllversionInformation():
+        return {
+            "os": Globals.instance._os,
+            "osRelease": Globals.instance._osRelease,
+            "osVersion": Globals.instance._osVersion,
+            "pythonVersion": Globals.instance._pythonVersion,
+            "version": Globals.instance._version,
+            "name": Globals.instance._name
+        }
 
 print(hasattr(Globals, "instance"))
 if not hasattr(Globals, "instance"):

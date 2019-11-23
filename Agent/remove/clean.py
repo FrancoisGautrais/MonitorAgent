@@ -1,13 +1,28 @@
-from gloabls import Globals
+from conf import Globals
 from os import walk
 import os
 
-_exclude=[line.rstrip('\n') for line in open(Globals.conf('exclude'))]
-_include=[line.rstrip('\n') for line in open(Globals.conf('include'))]
 
-print(_include, _exclude)
+def readFilexClude(path, base=[]):
+    current=base.copy()
+    for line in open(path):
+        line=line.rstrip("\n")
+        if os.path.isdir(line) and ((line[-1]!="\\") if Globals.isWindows() else (line[-1]!="/")):
+            line+="\\" if Globals.isWindows() else "/"
+        current.append(line)
+    return current
 
-def comparDir(a, b):
+
+def comparDir(_a, _b):
+    a=""
+    b=""
+    if len(_a) < len(_b):
+        a=_a+""
+        b=_b[:len(a)]
+    else:
+        a=_a[:len(b)]
+        b=_b+""
+
     if Globals.isWindows():
         return a.replace("/","\\").lower()==b.replace("/","\\").lower()
     return a.replace("/","\\")==b.replace("/","\\")
@@ -25,11 +40,41 @@ def expandDirs(dirs):
         i=i+1
         if os.path.isdir(x):
             for p in os.listdir(x):
-                is os.path.
-                l.append(os.path.join(x, p))
+                p=os.path.join(x,p)
+                if os.path.isdir(p):
+                    if Globals.isWindows(): p+="\\"
+                    else: p+="/"
+                l.append(p)
     return l
 
 def excludeDirs(base, exList):
+    out=[]
+    for file in base:
+        for test in exList:
+            add=True
+            if comparDir(test, file):
+                add=False
+        if add:
+            out.append(file)
 
 
-print(expandDirs(["C:\\Users\\Utilisateur_2\\AppData\\Local\\Programs\\Python\\Python38-32\\Lib\\asyncio"]))
+    return out
+
+
+
+exclude=readFilexClude(Globals.conf("exclude"))
+include=expandDirs(readFilexClude(Globals.conf("include")))
+fileToDelete=excludeDirs(include, exclude)
+
+
+def clean():
+    print(include)
+    print(fileToDelete)
+    for i in range(len(fileToDelete)-1, -1, -1):
+        file=fileToDelete[i]
+        if os.path.isdir(file):
+            try:
+                os.rmdir(file)
+            except: pass
+        else:
+            os.remove(file)
