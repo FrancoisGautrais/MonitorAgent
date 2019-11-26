@@ -1,5 +1,53 @@
 from .commandsloader import call
+import uuid
 
+
+
+
+class Lexer:
+
+    def __init__(self, text):
+        self._text=text.rstrip("\n")
+        self._i=0
+        self._current=""
+
+    def _c(self):
+        return self._text[self._i]
+
+    def _nc(self):
+        if self._i+1>=len(self._text): return None
+        self._i+=1
+
+        return self._c()
+
+    def _isSep(self, c=None):
+        if c==None: c=self._c()
+        return c in " \t\r\n"
+
+    def hasNext(self):
+        return self._i!=len(self._text)-1
+
+    def peak(self): return self._current
+
+    def next(self):
+        self._current=""
+        if not self.hasNext(): return None
+        while self._isSep(): self._nc()
+
+        if self._c()=="\'" or self._c()=='"':
+            x=self._c()
+            self._current=""
+            self._nc()
+            while self.hasNext() and (self._c()!=x or self._current[-1]=="\\"):
+                self._current+=self._c()
+                self._nc()
+            return self._current
+
+        while True:
+            self._current+=self._c()
+            if (not self.hasNext()) or self._isSep():
+                return self._current if (not self._isSep()) else self._current[:-1]
+            self._nc()
 
 class Command:
 
@@ -16,14 +64,31 @@ class Command:
         if hasattr(d, "doAfter"):
             self.doBefore=Command(d["doAfter"])
 
-    def start(self):
+    def start(self, shell):
         print("Exec: "+self.cmd)
         out={}
         print(self.id)
         if self.doBefore:
             out[self.doBefore.id]=self.doBefore.start()
-        out[self.id]=call(self.cmd, self.args)
+        out[self.id]=call(shell, self.cmd, self.args)
         if self.doAfter:
             out[self.doAfter.id]=self.doAfter.start()
 
         return out
+
+    @staticmethod
+    def fromText(txt):
+        l=Lexer(txt)
+        cmd=l.next()
+        print("lex:", l.peak())
+        args=[]
+        while l.next()!=None and l.peak()!="":
+            print("lex:", l.peak())
+            args.append(l.peak())
+
+        return {
+            "id": uuid.uuid4(),
+            "cmd": cmd,
+            "args": args
+        }
+

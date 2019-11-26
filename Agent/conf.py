@@ -12,6 +12,7 @@ class Globals:
         self._version=(0,0,0)
         self._port=443
         self._host="127.0.0.1"
+        self._data={}
         self._dir=os.path.dirname(os.path.realpath(__file__))
         self._conf=os.path.join(self._dir,"conf/")
         self._name=socket.gethostname()
@@ -39,6 +40,19 @@ class Globals:
             "name": Globals.instance._name,
             "uuid": Globals.instance._uuid
         }
+
+    @staticmethod
+    def data(key, val=None):
+        if val!=None:
+            Globals.instance._data[key]=val
+        elif not key in Globals.instance._data:
+            return None
+        return Globals.instance._data[key]
+
+    @staticmethod
+    def hasData(key):
+        return key in Globals.instance._data
+
 
 print(hasattr(Globals, "instance"))
 if not hasattr(Globals, "instance"):

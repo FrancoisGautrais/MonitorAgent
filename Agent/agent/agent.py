@@ -2,12 +2,14 @@ from conf import Globals
 import requests
 from agent import errors
 from .command import Command
+from .shell import Shell
 
 class Agent:
 
     def __init__(self, server="http://localhost:8080/"):
         self._baseUrl=server
         self._id=None
+        self._shell=Shell(self)
 
     def connect(self):
         print("Here: ", self._baseUrl+"connect")
@@ -44,9 +46,8 @@ class Agent:
         print(ret)
 
     def execCommands(self, cmd):
-        out={}
-        for c in cmd:
-            x=Command(c).start()
-            for k in x:
-                out[k]=x
-        return out
+        return self._shell.execCommand(cmd)
+
+
+    def execCommandsFromLine(self, cmd):
+        return self._shell.execCommand(Command.fromText(cmd))
