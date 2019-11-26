@@ -44,9 +44,9 @@ class Lexer:
             return self._current
 
         while True:
-            self._current+=self._c()
             if (not self.hasNext()) or self._isSep():
-                return self._current if (not self._isSep()) else self._current[:-1]
+                return self._current if (self.hasNext()) else self._current+self._c()
+            self._current+=self._c()
             self._nc()
 
 class Command:
@@ -65,30 +65,27 @@ class Command:
             self.doBefore=Command(d["doAfter"])
 
     def start(self, shell):
-        print("Exec: "+self.cmd)
+        """
         out={}
-        print(self.id)
         if self.doBefore:
             out[self.doBefore.id]=self.doBefore.start()
         out[self.id]=call(shell, self.cmd, self.args)
         if self.doAfter:
             out[self.doAfter.id]=self.doAfter.start()
-
-        return out
+        """
+        return call(shell, self.cmd, self.args)
 
     @staticmethod
     def fromText(txt):
         l=Lexer(txt)
         cmd=l.next()
-        print("lex:", l.peak())
         args=[]
         while l.next()!=None and l.peak()!="":
-            print("lex:", l.peak())
-            args.append(l.peak())
+            args.append(l.peak().rstrip())
 
-        return {
+        return Command({
             "id": uuid.uuid4(),
             "cmd": cmd,
             "args": args
-        }
+        })
 

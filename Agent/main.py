@@ -3,7 +3,6 @@ from conf import Globals
 from remove import clean
 import time
 from agent.agent import Agent
-from agent.command import Command
 import sys
 """
 def doUpdate():
@@ -30,12 +29,11 @@ clean.clean()
 
 
 client  = Agent()
-x=Command.fromText("print salut 'ok ça va ?' ")
-client.execCommands(x)
+print("$ ", end = '')
 for line in sys.stdin:
-    print("here")
-    client.execCommands(Command.fromText(line))
-    print("here 2")
+    x=client.execCommandsFromLine(line)
+    print(x.out)
+    print("$ ", end='')
 
 
 
