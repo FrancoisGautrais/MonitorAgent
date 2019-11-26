@@ -9,7 +9,7 @@ class Command:
         self.doAfter=None
         self.id=d["id"]
         self.cmd=d["cmd"]
-        self.args=d["args"] if hasattr(d, "args") else []
+        self.args=d["args"] if ("args" in d) else []
 
         if hasattr(d, "doBefore"):
             self.doBefore=Command(d["doBefore"])
@@ -17,6 +17,7 @@ class Command:
             self.doBefore=Command(d["doAfter"])
 
     def start(self):
+        print("Exec: "+self.cmd)
         out={}
         print(self.id)
         if self.doBefore:

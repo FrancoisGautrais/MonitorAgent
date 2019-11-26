@@ -33,7 +33,9 @@ class _CommandsLoader:
 
 
     def call(self, name, args):
-        return self.commands[name](args)
+        x=self.commands[name](args)
+        if not x: return 0
+        return x
 
 _instance=_CommandsLoader()
 

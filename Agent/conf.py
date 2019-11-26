@@ -1,6 +1,7 @@
 import platform
 import os
 import socket
+import uuid
 
 class Globals:
     def __init__(self):
@@ -14,6 +15,7 @@ class Globals:
         self._dir=os.path.dirname(os.path.realpath(__file__))
         self._conf=os.path.join(self._dir,"conf/")
         self._name=socket.gethostname()
+        self._uuid=uuid.getnode()
         with open("version") as f:
             print(tuple(f.read().split(".")))
 
@@ -34,7 +36,8 @@ class Globals:
             "osVersion": Globals.instance._osVersion,
             "pythonVersion": Globals.instance._pythonVersion,
             "version": Globals.instance._version,
-            "name": Globals.instance._name
+            "name": Globals.instance._name,
+            "uuid": Globals.instance._uuid
         }
 
 print(hasattr(Globals, "instance"))

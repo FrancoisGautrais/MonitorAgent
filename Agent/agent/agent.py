@@ -1,29 +1,34 @@
 from conf import Globals
 import requests
+from agent import errors
 from .command import Command
 
 class Agent:
 
-    def __init__(self, server="http://192.168.0.17:8080/"):
+    def __init__(self, server="http://localhost:8080/"):
         self._baseUrl=server
+        self._id=None
 
     def connect(self):
         print("Here: ", self._baseUrl+"connect")
         r = requests.post(self._baseUrl+"connect", json=Globals.getAllversionInformation())
+        print(r)
         ret = r.json()
         code=ret["code"]
         message=ret["message"]
+        self._id=r.headers["x-session-id"]
         print(code, message)
         print(r.json())
 
     def poll(self):
         print("Here: ", self._baseUrl+"poll")
-        r = requests.get(self._baseUrl+"poll")
+        headers={ "x-session-id" : self._id}
+        r = requests.get(self._baseUrl+"poll", headers=headers)
         ret = r.json()
         code=ret["code"]
         message=ret["message"]
-
-        if code==100:
+        print(ret)
+        if code==errors.BAD_SESSION or code==errors.BAD_PARAMETER:
             self.connect()
             return self.poll()
         else:
@@ -31,6 +36,12 @@ class Agent:
             print("data=", data)
             return self.execCommands(data)
 
+    def getInfo(self):
+        print("Here: ", self._baseUrl + "poll")
+        headers = {"x-session-id": self._id}
+        r = requests.get(self._baseUrl + "getinfo", headers=headers)
+        ret = r.json()
+        print(ret)
 
     def execCommands(self, cmd):
         out={}
