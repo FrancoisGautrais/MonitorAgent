@@ -1,7 +1,6 @@
 from conf import Globals
 import requests
 from agent import errors
-from .command import Command
 from .shell import Shell
 
 class Agent:
@@ -50,4 +49,4 @@ class Agent:
 
 
     def execCommandsFromLine(self, cmd):
-        return self._shell.execCommand(Command.fromText(cmd))
+        return self._shell.execCommandFromLine(cmd)

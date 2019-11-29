@@ -54,11 +54,10 @@ class Globals:
         return key in Globals.instance._data
 
 
-print(hasattr(Globals, "instance"))
 if not hasattr(Globals, "instance"):
     Globals.instance=Globals()
-print(hasattr(Globals, "instance"))
-print(Globals.instance.conf("test"))
+    exec(open("./conf/config.py").read())
+
 
 def getInstance():
     return Globals.instance

@@ -1,4 +1,7 @@
-
+import subprocess
+import os
+from agent.commandreturn import CommandReturn
+from conf import Globals
 
 class Stack:
 
@@ -19,3 +22,33 @@ class Stack:
 
     def isEmpty(self):
         return len(self._data)==0
+
+def argsToString(args):
+    out=""
+    for arg in args:
+        putGuill=""
+        for x in " \t\n":
+            if x in arg:
+                putGuill='"'
+                break
+        out+=putGuill+arg+putGuill+" "
+    return out[:-1]
+
+def execSystem(cmd, pipe=True,input=None):
+    if pipe:
+        x=subprocess.run(cmd, stderr=subprocess.STDOUT, stdout=subprocess.PIPE)
+        return CommandReturn(x.returncode, x.stdout)
+    else:
+        #x = subprocess.Popen(cmd)
+        print(cmd)
+        if Globals.isWindows():
+            print(argsToString(cmd))
+            os.system(argsToString(cmd))
+        else:
+            pid=os.fork()
+            if pid:
+                os.waitpid(pid,0)
+            else:
+                os.execv(cmd[0], cmd)
+
+        return  CommandReturn(0)
