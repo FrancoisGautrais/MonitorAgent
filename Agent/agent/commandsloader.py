@@ -47,7 +47,9 @@ class _CommandsLoader:
         if not x: return 0
         return x
 
-_instance=_CommandsLoader()
+_instance=None
 
 def call(shell, name, args=[]):
+    global _instance
+    if _instance==None: _instance=_CommandsLoader()
     return _instance.call(shell, name, args)

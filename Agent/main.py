@@ -18,6 +18,9 @@ def doUpdate():
         time.sleep(5)
 
 doUpdate()
+
+"""
+
 client  = Agent()
 client.connect()
 time.sleep(1)
@@ -25,7 +28,7 @@ client.poll()
 client.getInfo()
 print("end")
 clean.clean()
-"""
+
 
 
 
