@@ -5,7 +5,7 @@ from httpserver.utils import Callback
 class Command:
 
     def __init__(self, cmd, args=[], cb=Callback()):
-        self.id=uuid.uuid4()
+        self.id=str(uuid.uuid4())
         self.cmd=cmd
         self.args=args
         self.callback=cb

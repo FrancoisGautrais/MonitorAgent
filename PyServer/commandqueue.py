@@ -4,9 +4,27 @@ class CommandQueue:
 
     def __init__(self, blocking=True):
         self.queue=[]
-        self.cond = asyncio.Condition()
+        #self.cond = asyncio.Condition()
+
+    def isempty(self):
+        return len(self.queue)==0
 
     def enqueue(self, v):
+        self.queue.append(v)
+        return v
+
+    def dequeue(self, blocking=True):
+        if blocking:
+            while self.isempty(): time.sleep(0.01)
+
+            return self.queue.pop(0)
+
+        elif len(self.queue) > 0:
+            return self.queue.pop(0)
+        return None
+
+    """
+    async def enqueue(self, v):
         self.queue.append(v)
         if len(self.queue)==1:
             try:
@@ -14,8 +32,8 @@ class CommandQueue:
             except:
                 pass
         return v
-
-    def dequeue(self, blocking=True):
+    
+    async def dequeue(self, blocking=True):
         if blocking:
             async with self.cond:
                 await self.cond.wait()
@@ -25,5 +43,7 @@ class CommandQueue:
         elif len(self.queue)>0:
             return self.queue.pop(0)
         return None
+        
+    """
 
 

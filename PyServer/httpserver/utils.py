@@ -1,4 +1,15 @@
 
+import magic
+
+def mime(path):
+    print("magic: ", path)
+    try:
+        x=magic.detect_from_filename(path)
+        return x.mime_type
+    except:
+        return "text/plain"
+
+
 class Callback:
 
     def __init__(self, fct=None, obj=None, data=None):
@@ -14,19 +25,19 @@ class Callback:
 
         if self.obj:
             if data:
-                self.fct(self.obj, *data)
+                return self.fct(self.obj, *data)
             else:
                 x=prependParams+appendParams
                 if x:
-                    self.fct(self.obj, *x)
+                    return self.fct(self.obj, *x)
                 else:
-                    self.fct()
+                    return self.fct()
         else:
             if data:
-                self.fct(*data)
+                return self.fct(*data)
             else:
                 x=prependParams+appendParams
                 if x:
-                    self.fct(*x)
+                    return self.fct(*x)
                 else:
-                    self.fct()
+                    return self.fct()

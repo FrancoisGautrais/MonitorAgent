@@ -8,7 +8,7 @@ class SocketWrapper:
 
     def send(self, s):
         if isinstance(s, str): s = bytes(s, "utf8")
-        self._socket.send(s)
+        return self._socket.send(s)
 
     def read_bin(self, l=1):
         chunks = []
@@ -44,7 +44,7 @@ class ServerSocket(SocketWrapper):
     def bind(self, ip, port):
         self._ip=ip
         self._port=port
-        print("ip=", ip, "port", port)
+        print("Listening on", ip, "at port", port,"...")
         self._socket.bind((ip, port))
         self._socket.listen(5)
 

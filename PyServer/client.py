@@ -1,5 +1,5 @@
-from .commandqueue import CommandQueue
-from .command import Command
+from commandqueue import CommandQueue
+from command import Command
 
 import time
 import uuid
@@ -25,19 +25,23 @@ class Client:
         return self.status
 
 
-    def _on_response(self, resp):
-        if resp.id in self.pending:
-            d=self.pending[resp.id]
-            d.response(resp)
-            del self.pending[resp.id]
+    def result(self, resp):
 
-    def wait_fo_command(self, req, blocking=True):
+        if ("response" in resp):
+            if resp.id in self.pending:
+                d=self.pending[resp.id]
+                d.response(resp)
+                del self.pending[resp.id]
+                return True
+            else:
+                return False
+
+
+    def wait_fo_command(self, blocking=True):
         self.lastRequest=time.time()
         self.status=Client.STATUS_CONNECTED
 
-        if ("response" in req):
-            data=req["response"]
-            self._on_response(data)
+
 
         cmd = self.queue.dequeue(blocking)
         if cmd:

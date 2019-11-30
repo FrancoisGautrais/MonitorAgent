@@ -1,13 +1,15 @@
 from .socketwrapper import SocketWrapper, ServerSocket
-from .httprequest import HTTPResponse, HTTPRequest, testurl
+from .httprequest import HTTPResponse, HTTPRequest, testurl, HTTP_OK, STR_HTTP_ERROR, HTTP_NOT_FOUND
 from threading import Thread
 
+import os
 class HttpSocket(SocketWrapper):
 
     def __init__(self, llsocket, ip=""):
         if isinstance(llsocket, SocketWrapper): llsocket=llsocket._socket
         SocketWrapper.__init__(self, llsocket)
         self.ip=ip
+        self.www_dir=os.path.abspath(".")
 
     def _readline(self):
         out=""
@@ -17,16 +19,27 @@ class HttpSocket(SocketWrapper):
             char = self.readc()
         return out
 
+
+
     def sendResponse(self, res : HTTPResponse):
-        print("res=", res)
-        res.addHeader("Content-Length", res.length())
-        self.send(res.getbytes())
+        total=0
+        total+=self.send(res.getheadersbytes())
+        if res.isStreaming():
+            chunk=1024
+            left=int(res.headers["Content-Length"])
+            while left>0:
+                toRead=min(left, chunk)
+                readed=self.send(res.data.read(toRead))
+                total+=readed
+                left-=toRead
+        else:
+            res.addHeader("Content-Length", res.length())
+            d=res.getbodybytes()
+            if d: total+=self.send(d)
+        return total
 
     def nextrequest(self):
-        print("===A===")
         req=self._readHeaders()
-
-        print("===B===")
         if req.method == "GET": return req
         if req.method == "POST": return self._readPostData(req)
         raise Exception("Method '"+req.method+"' non gérée")
@@ -48,7 +61,7 @@ class HttpSocket(SocketWrapper):
         while len(line)>0:
             key=line[:line.find(":")]
             val=line[line.find(":")+1:].lstrip()
-            req.headers[key]=val
+            req.setheader(key, val)
             line=self._readline()[:-1]
         return req
 
@@ -57,12 +70,6 @@ class HttpSocket(SocketWrapper):
     def fromSocketWrapper(ssocket):
         return HttpSocket(ssocket._socket)
 
-def handlesocket(soc, d=None):
-    s=HttpSocket.fromSocketWrapper(soc)
-    print(s.nextrequest().__dict__)
-    res=HTTPResponse(200, "OK")
-    res.setJsonResponse({ "un truc" : [1,2,3]})
-    s.sendResponse(res)
 
 
 class _ThreadWrapper(Thread):
@@ -74,7 +81,6 @@ class _ThreadWrapper(Thread):
         self.fct=fct
 
     def run(self):
-        print("x->", self.obj, self.data)
         self.fct(self.obj, self.data)
 
 def _start_thread(fct, obj, data):
@@ -100,10 +106,14 @@ class HTTPServer(ServerSocket):
 
     def _handlerequest(self, soc : HttpSocket):
         req=soc.nextrequest()
-        res=HTTPResponse()
+        res=HTTPResponse(200, )
         self.handlerequest(req, res)
         soc.sendResponse(res)
         soc.close()
 
     def handlerequest(self, req, res):
         pass
+
+
+    def serveFile(self, req: HTTPRequest, res : HTTPResponse):
+        res.serveFile(os.path.join(self.www_dir, req.path[1:]))

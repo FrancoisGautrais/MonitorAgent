@@ -1,4 +1,4 @@
-from .client import Client
+from client import Client
 
 class AppData():
 
@@ -13,6 +13,8 @@ class AppData():
         self._clients[c.id]=c
         return c
 
+    def auth(self, login, password):
+        return True
 
     def __getitem__(self, id):
         return self._clients[id]

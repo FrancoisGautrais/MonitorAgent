@@ -1,7 +1,7 @@
 from httpserver import socketwrapper
 from httpserver.httprequest import HTTPResponse
 from httpserver.restserver import RESTServer
-
+from appserver import AppServer
 """
 from clientthread import ClientThread
 
@@ -26,9 +26,10 @@ while True:
 def test(req, res : HTTPResponse):
     res.end("Default")
 
-server= RESTServer()
 
-server.route("GET", "/create/#x/#y/z", RESTServer.create, server)
+server= AppServer()
+
+#server.route("GET", "/create/#x/#y/z", RESTServer.create, server)
 #server.route("GET", "/delete", socketwrapper.HTTPServer.delete,server )
 #server.route("GET", "/update", socketwrapper.HTTPServer.update,server )
 server.listen(8080)
