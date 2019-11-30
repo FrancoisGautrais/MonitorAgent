@@ -2,6 +2,33 @@ import json
 
 def fromutf8(x): return bytes(x, "utf8")
 
+def stripemptystr(p):
+    out=[]
+    for v in p:
+        if v!='': out.append(v)
+    return out
+
+
+
+def testurl(template, url):
+        url=stripemptystr(url.split("/"))
+        template=stripemptystr(template.split("/"))
+        args={}
+
+        if len(url) != len(template): return None
+
+        for i in range(0,len(template)):
+            v=template[i]
+            if v[0]=='#':
+                args[v[1:]]=url[i]
+            elif v!=url[i]: return None
+
+        return args
+
+
+
+
+
 class _HTTP:
 
     def __init__(self):
@@ -15,7 +42,7 @@ class _HTTP:
     def headerasint(self, x):
         return int(self.headers[x])
 
-    def headerasstr(self):
+    def headerasstr(self, x):
         return self.headers[x]
 
     def contentLength(self):
@@ -26,6 +53,9 @@ class _HTTP:
 
     def addHeader(self, key, val):
         self.headers[key]=str(val)
+
+    def length(self):
+        return self.data if self.data else 0
 
 
 
@@ -38,9 +68,11 @@ class HTTPRequest(_HTTP):
         self.url="/"
         self.path="/"
         self.urlparams={}
+        self.restparams={}
+
 
     def setUrl(self, url):
-        self.url=url
+        self.path=self.url=url
         n=self.url.find("?")
         if n>=0:
             self.path=self.url[:n]
@@ -58,7 +90,8 @@ class HTTPRequest(_HTTP):
                     key=k
                 self.urlparams[key]=value
 
-
+    def length(self):
+        return self.data if self.data else 0
 
 
 class HTTPResponse(_HTTP):
@@ -83,6 +116,9 @@ class HTTPResponse(_HTTP):
         if self.data:
             s+=self.data
         return s
+
+
+
 
     def end(self, s):
         if isinstance(s, str): s=fromutf8(s)

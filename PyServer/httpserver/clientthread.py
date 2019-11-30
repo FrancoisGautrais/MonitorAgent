@@ -3,7 +3,7 @@ import sys
 from threading import Thread
 import time
 import socket
-from socketwrapper import
+from httpserver.socketwrapper import
 
 class ClientThread(Thread):
 

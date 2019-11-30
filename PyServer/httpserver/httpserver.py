@@ -1,36 +1,6 @@
-import socket
-from httprequest import HTTPRequest, HTTPResponse
+from .socketwrapper import SocketWrapper, ServerSocket
+from .httprequest import HTTPResponse, HTTPRequest, testurl
 from threading import Thread
-
-class SocketWrapper:
-
-    def __init__(self, llsocket):
-        self._socket=llsocket
-
-    def send(self, s):
-        if isinstance(s, str): s = bytes(s, "utf8")
-        self._socket.send(s)
-
-    def read_bin(self, l=1):
-        chunks = []
-        bytes_recd = 0
-        while bytes_recd < l:
-            chunk = self._socket.recv(min(l - bytes_recd, 2048))
-            if chunk == b'':
-                raise RuntimeError("socket connection broken")
-            chunks.append(chunk)
-            bytes_recd = bytes_recd + len(chunk)
-        return b''.join(chunks)
-
-    def read_str(self, len=1):
-        return str(self.read_bin(len), encoding="utf8")
-
-    def readc(self):
-        return self.read_str()
-
-    def close(self):
-        return self._socket.close()
-
 
 class HttpSocket(SocketWrapper):
 
@@ -49,12 +19,13 @@ class HttpSocket(SocketWrapper):
 
     def sendResponse(self, res : HTTPResponse):
         print("res=", res)
-        res.addHeader("Content-Length", len(res.data))
+        res.addHeader("Content-Length", res.length())
         self.send(res.getbytes())
 
     def nextrequest(self):
         print("===A===")
         req=self._readHeaders()
+
         print("===B===")
         if req.method == "GET": return req
         if req.method == "POST": return self._readPostData(req)
@@ -94,26 +65,6 @@ def handlesocket(soc, d=None):
     s.sendResponse(res)
 
 
-class ServerSocket(SocketWrapper):
-
-    def __init__(self):
-        SocketWrapper.__init__(self, socket.socket(socket.AF_INET, socket.SOCK_STREAM))
-        self._socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self._ip=""
-        self._port=-1
-
-    def bind(self, ip, port):
-        self._ip=ip
-        self._port=port
-        self._socket.bind((ip, port))
-        self._socket.listen(5)
-
-    def accept(self, cb=None, args=[]):
-        (clientsocket, address) = self._socket.accept()
-        client = SocketWrapper(clientsocket)
-        if cb: cb(client, args)
-        return client
-
 class _ThreadWrapper(Thread):
 
     def __init__(self, fct, obj, data=None):
@@ -134,19 +85,14 @@ def _start_thread(fct, obj, data):
 
 class HTTPServer(ServerSocket):
 
-    def __init__(self, ip, port):
+    def __init__(self, ip="localhost"):
         ServerSocket.__init__(self)
-        self.bind(ip, port)
-        self._handlers={}
-
-    def route(self, method, url, fct, obj=None, data=None):
-        if not (method in self._handlers):
-            self._handlers[method.upper()]={}
-        self._handlers[method.upper()][url]=(fct, obj, data)
+        self._ip=ip
 
 
-
-    def accept(self):
+    def listen(self, port):
+        self._port = port
+        self.bind(self._ip, self._port)
         while True:
             x=super().accept()
             soc= HttpSocket(x)
@@ -159,32 +105,5 @@ class HTTPServer(ServerSocket):
         soc.sendResponse(res)
         soc.close()
 
-
-    def create(self, req : HTTPRequest, res : HTTPResponse):
-        res.end("Create")
-
-    def delete(self, req : HTTPRequest, res : HTTPResponse):
-        res.end("update")
-
-    def update(self, req : HTTPRequest, res : HTTPResponse):
-        res.end("update")
-
     def handlerequest(self, req, res):
-        m=req.method
-        u=req.path
-        d=self._handlers[m]
-        for url in d:
-            if url==u or u+"/"==url or u==url+"/":
-                fct, obj, data = d[url]
-                if obj:
-                    if data:
-                        fct(obj, req, res, data)
-                    else:
-                        fct(obj, req, res)
-                else:
-                    fct(req, res, data)
-
-
-
-
-
+        pass
