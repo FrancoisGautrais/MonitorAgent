@@ -20,7 +20,7 @@ def cmd_cd(shell : Shell, args):
         return CommandReturn(errors.BAD_PARAMETER, "'"+args[0]+"' no file or directory")
 
 def cmd_pwd(shell: Shell, args):
-    return CommandReturn(errors.OK, "OK", shell.getPwd())
+    return CommandReturn(errors.OK, shell.getPwd())
 
 def cmd_ls(shell: Shell, args):
     dir=shell.getPwd()

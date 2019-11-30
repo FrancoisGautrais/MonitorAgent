@@ -11,7 +11,7 @@ class Agent:
         self._shell=Shell(self)
 
     def connect(self):
-        print("Here: ", self._baseUrl+"connect")
+        print("Request: ", self._baseUrl+"connect")
         r = requests.post(self._baseUrl+"connect", json=Globals.getAllversionInformation())
         print(r)
         ret = r.json()
@@ -21,24 +21,29 @@ class Agent:
         print(code, message)
         print(r.json())
 
-    def poll(self):
-        print("Here: ", self._baseUrl+"poll")
+    def wait(self): return self._poll("wait")
+    def poll(self): return self._poll("poll")
+
+    def _poll(self, url):
+        print("Request: ", self._baseUrl+url)
         headers={ "x-session-id" : self._id}
-        r = requests.get(self._baseUrl+"poll", headers=headers)
+        r = requests.get(self._baseUrl+url, headers=headers)
         ret = r.json()
         code=ret["code"]
         message=ret["message"]
         print(ret)
-        if code==errors.BAD_SESSION or code==errors.BAD_PARAMETER:
+
+        if r.status_code==errors.BAD_SESSION or r.status_code==errors.BAD_PARAMETER:
             self.connect()
-            return self.poll()
+            return self._poll(url)
         else:
             data=ret["data"]
-            print("data=", data)
-            return self.execCommands(data)
+            if data:
+                return self.execCommands(data)
+            return None
 
     def getInfo(self):
-        print("Here: ", self._baseUrl + "poll")
+        print("Request: ", self._baseUrl + "poll")
         headers = {"x-session-id": self._id}
         r = requests.get(self._baseUrl + "getinfo", headers=headers)
         ret = r.json()

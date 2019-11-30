@@ -12,6 +12,7 @@ class Lexer:
         self._current=""
 
     def _c(self):
+        if self._i>= len(self._text): return "\0"
         return self._text[self._i]
 
     def _nc(self):
@@ -21,11 +22,12 @@ class Lexer:
         return self._c()
 
     def _isSep(self, c=None):
-        if c==None: c=self._c()
+        if c==None:
+            c=self._c()
         return c in " \t\r\n"
 
     def hasNext(self):
-        return self._i!=len(self._text)-1
+        return self._i!=len(self._text)-1 and len(self._text)>0
 
     def peak(self): return self._current
 
@@ -45,7 +47,8 @@ class Lexer:
 
         while True:
             if (not self.hasNext()) or self._isSep():
-                return self._current if (self.hasNext()) else self._current+self._c()
+                if not self.hasNext() and not self._isSep(): self._current+=self._text[self._i]
+                return self._current
             self._current+=self._c()
             self._nc()
 
