@@ -23,6 +23,11 @@ class CommandQueue:
             return self.queue.pop(0)
         return None
 
+    def has(self, id):
+        for cmd in self.queue:
+            if cmd.id==id:
+                return True
+        return False
     """
     async def enqueue(self, v):
         self.queue.append(v)

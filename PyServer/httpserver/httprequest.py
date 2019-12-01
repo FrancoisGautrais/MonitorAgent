@@ -12,6 +12,7 @@ STR_HTTP_ERROR={
     HTTP_OK: "OK",
     HTTP_UNAUTHORIZED: "Unauthorized",
     HTTP_BAD_REQUEST: "Bad request",
+    HTTP_NOT_FOUND: "Not Found",
     HTTP_TEMPORARY_REDIRECT: "Temporary redirect"
 }
 
@@ -50,6 +51,23 @@ class _HTTP:
         self.headers={}
         self.data=None
 
+
+    def getPostParams(self):
+        post=str(self.data)
+        out={}
+        for k in post.split("&"):
+            n=k.find("=")
+            key=""
+            value=""
+            v=""
+            if n>0:
+                key=k[:n]
+                value=k[n+1:]
+            else:
+                key=k
+            out[key]=value
+        return out
+
     def json(self):
         return json.loads(self.data)
 
@@ -75,7 +93,7 @@ class _HTTP:
         self.headers[key]=str(val)
 
     def length(self):
-        return self.data if self.data else 0
+        return len(self.data) if self.data else 0
 
 
 
@@ -90,6 +108,8 @@ class HTTPRequest(_HTTP):
         self.urlparams={}
         self.restparams={}
         self.cookies={}
+        self.filename=""
+
 
 
     def setUrl(self, url):
@@ -109,6 +129,7 @@ class HTTPRequest(_HTTP):
                 else:
                     key=k
                 self.urlparams[key]=value
+            self.filename=os.path.basename(self.path)
 
 
     def length(self):
@@ -133,7 +154,6 @@ class HTTPResponse(_HTTP):
         self.code=code
         self.msg=STR_HTTP_ERROR[code]
         self._isStreaming=False
-
 
 
     def _setJsonResponse(self, httpcode, code, msg, js):
@@ -168,7 +188,6 @@ class HTTPResponse(_HTTP):
 
         fd=None
         try:
-            print("Serving '"+path+"'")
             fd=open(path, "rb")
         except Exception as err:
             self.code = HTTP_NOT_FOUND
@@ -180,10 +199,12 @@ class HTTPResponse(_HTTP):
                 self.end("File not found : "+str(err))
             return
 
-        self._isStreaming=True
+        #self._isStreaming=True
         self.contentType(mime(path))
         self.headers["Content-Length"] = str(os.stat(path).st_size)
-        self.end(open(path, "rb"))
+        print("Serving file : "+path)
+        self.end(open(path, "rb").read())
+        #self.end(open(path, "rb"))
 
     def getbodybytes(self):
         return self.data

@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <link href="css/demo.css" rel="stylesheet">
+  <link href="css/icons.css" rel="stylesheet">
   <link rel="stylesheet" type="text/css" href="css/materialize.css">
   <title>Authentification</title>
   <style>
@@ -52,46 +53,62 @@
       vertical-align: middle;
       margin-right: 20px;
      }
+
+     #log{height:100pt;overflow:auto}
   </style>
 </head>
 
 <body>
+    <div id="id" style="display: none;">{{#info}}{{uuid}}{{/info}}</div>
   <div class="section"></div>
   <main>
-    <center><h1> Administration </h1></center>
+
+
+    <center><h1> {{#info}}{{name}}{{/info}}</h1></center>
+
 
       <div class="container">
-      {{#clients}}
-        <ul class="collection">
-          <li class="collection-item avatar">
-            <img src="imgs/{{status}}.png" alt="" class="circle">
-              {{#info}}
-            <span class="title"><b>{{name}}</b></span>
-                <p> {{uuid}} <br>
-                   {{os}} : {{osRelease}}
-                </p>
-              {{/info}}
 
-            <div class="secondary-content icondock">
-              {{#info}}
-              <span class="icon-preferences-system-symbolic middle" onclick="on_options({{uuid}})"></span>
-              <span class="icon-utilities-terminal-symbolic middle" onclick="on_terminal({{uuid}})"></span>
-              <span class="icon-system-reboot-symbolic middle" onclick="on_reboot({{uuid}})"></span>
-              <span class="icon-system-shutdown-symbolic middle" onclick="on_shutdown({{uuid}})"></span>
-              {{/info}}
-            </div>
-          </li>
-        </ul>
-      {{/clients}}
+
+          <table>
+            <thead>
+              <tr>
+                  <th>Propriété</th>
+                  <th>Valeur</th>
+              </tr>
+            </thead>
+
+            <tbody>
+                {{#desc}}
+                  <tr>
+                    <td>{{field}}</td>
+                    <td>{{value}}</td>
+                  </tr>
+                {{/desc}}
+            </tbody>
+          </table>
       </div>
+       <div class="row">
 
-    <div class="section"></div>
-    <div class="section"></div>
+           <div class="input-field col s12" id="log">
+
+           </div>
+           <div class="input-field col s11" >
+                <input placeholder="Entrez une commande" id="input_command" type="text" class="validate">
+                <label for="input_command">Entrez une commande</label>
+            </div>
+             <a class="btn waves-effect waves-light col s1" type="submit" name="action" onclick="on_send()">
+                <center> <i class="material-icons right">send</i></center>
+             </a>
+
+
+       </div>
+
   </main>
 
   <script type="text/javascript" src="js/jquery.min.js"></script>
   <script type="text/javascript" src="js/materialize.min.js"></script>
-  <script type="text/javascript" src="js/list.js"></script>
+  <script type="text/javascript" src="js/poste.js"></script>
 </body>
 
 </html>

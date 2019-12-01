@@ -23,10 +23,11 @@ class HttpSocket(SocketWrapper):
 
     def sendResponse(self, res : HTTPResponse):
         total=0
-        total+=self.send(res.getheadersbytes())
+
         if res.isStreaming():
-            chunk=1024
+            chunk=64*1024
             left=int(res.headers["Content-Length"])
+            total+=self.send(res.getheadersbytes())
             while left>0:
                 toRead=min(left, chunk)
                 readed=self.send(res.data.read(toRead))
@@ -35,7 +36,14 @@ class HttpSocket(SocketWrapper):
         else:
             res.addHeader("Content-Length", res.length())
             d=res.getbodybytes()
-            if d: total+=self.send(d)
+            self.send(res.getheadersbytes()+(d if d else bytes()))
+
+            try:
+                if d:  self.send(d)
+            except Exception as err:
+                print(err, self.sent, res.headers["Content-Length"])
+                print(str(res.getheadersbytes()))
+
         return total
 
     def nextrequest(self):
@@ -86,6 +94,7 @@ class _ThreadWrapper(Thread):
 def _start_thread(fct, obj, data):
     t=_ThreadWrapper(fct, obj, data)
     t.start()
+
     return t
 
 

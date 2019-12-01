@@ -19,12 +19,14 @@ class RESTServer(HTTPServer):
         self.static_dirs[baseUrl]=(dir, needauthcb, authcb)
 
 
-    def route(self, methods, url, fct, obj=None, data=None):
+    def route(self, methods, urls, fct, obj=None, data=None):
+        if isinstance(urls, str): urls=[urls]
         if isinstance(methods, str): methods = [methods]
         for method in methods:
             if not (method in self._handlers):
                 self._handlers[method.upper()] = {}
-            self._handlers[method.upper()][url] = Callback(fct, obj, data)
+            for url in urls:
+                self._handlers[method.upper()][url] = Callback(fct, obj, data)
 
     def default(self, fct, obj=None, data=None, methods=None):
         if methods:

@@ -5,10 +5,19 @@ class SocketWrapper:
 
     def __init__(self, llsocket):
         self._socket=llsocket
+        self.sent=0
 
     def send(self, s):
         if isinstance(s, str): s = bytes(s, "utf8")
-        return self._socket.send(s)
+        x=self._socket.sendall(s)
+        #self.sent+=x
+        return x
+        """try:
+            x=self._socket.send(s)
+            self.sent+=x
+        except Exception as err:
+            print(err, self.sent)
+        return x"""
 
     def read_bin(self, l=1):
         chunks = []
@@ -28,6 +37,7 @@ class SocketWrapper:
         return self.read_str()
 
     def close(self):
+        self._socket.shutdown(socket.SHUT_WR)
         return self._socket.close()
 
 

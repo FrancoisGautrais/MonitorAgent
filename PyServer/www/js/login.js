@@ -1,4 +1,10 @@
 a=0
+function seterror(str)
+{
+    $("#error").html(str)
+    $("#error-div").show(500)
+}
+
 function onLogin()
 {
     login=$("#login").val()
@@ -11,13 +17,12 @@ function onLogin()
             'x-password': passowrd
           },
          async: false
-      });
-      alert("fini")
-      if(a.status==200){
-        window.location.href="index.html"
-      }else{
-        alert("Error "+a.statusCode())
-      }
-      console.log(a)
-    console.log(login+"/"+passowrd)
+    });
+
+    if(a.status==200){
+      window.location.href="index.html"
+    }else{
+      seterror("Mauvais login ou mot de passe")
+      console.log("------")
+    }
 }

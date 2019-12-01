@@ -2,13 +2,14 @@
 import magic
 
 def mime(path):
-    print("magic: ", path)
+    return "text/plain"
+    """
     try:
         x=magic.detect_from_filename(path)
         return x.mime_type
     except:
         return "text/plain"
-
+    """
 
 class Callback:
 
@@ -20,6 +21,7 @@ class Callback:
 
     def call(self, prependParams=(), appendParams=()):
         data=None
+        if not self.fct: return None
         if self.data:
             data=prependParams+(self.data,)+appendParams
 
