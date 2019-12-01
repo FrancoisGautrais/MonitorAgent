@@ -7,7 +7,7 @@ class Globals:
     def __init__(self):
         self._os=platform.system()
         self._osRelease=platform.release()
-        self._osVersion=platform.release()
+        self._osVersion=platform.version()
         self._pythonVersion=platform.python_version()
         self._version=(0,0,0)
         self._port=443
@@ -18,7 +18,7 @@ class Globals:
         self._name=socket.gethostname()
         self._uuid=uuid.getnode()
         with open("version") as f:
-            print(tuple(f.read().split(".")))
+            self._version=tuple(f.read().split("."))
 
 
     @staticmethod

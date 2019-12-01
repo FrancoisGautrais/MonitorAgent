@@ -2,7 +2,7 @@ from .commandsloader import call
 import uuid
 
 
-
+from .commandreturn import CommandReturn
 
 class Lexer:
 
@@ -68,15 +68,13 @@ class Command:
             self.doBefore=Command(d["doAfter"])
 
     def start(self, shell):
-        """
-        out={}
-        if self.doBefore:
-            out[self.doBefore.id]=self.doBefore.start()
-        out[self.id]=call(shell, self.cmd, self.args)
-        if self.doAfter:
-            out[self.doAfter.id]=self.doAfter.start()
-        """
-        return call(shell, self.cmd, self.args)
+        x=call(shell, self.cmd, self.args)
+        if isinstance(x, CommandReturn):
+            x.setid(self.id)
+        else:
+            x=CommandReturn(-1, "")
+            x.setid(self.id)
+        return x
 
     @staticmethod
     def fromText(txt):

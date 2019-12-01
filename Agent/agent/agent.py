@@ -8,11 +8,12 @@ class Agent:
     def __init__(self, server="http://localhost:8080/"):
         self._baseUrl=server
         self._id=None
+        self._info=Globals.getAllversionInformation()
         self._shell=Shell(self)
 
     def connect(self):
         print("Request: ", self._baseUrl+"connect")
-        r = requests.post(self._baseUrl+"connect", json=Globals.getAllversionInformation())
+        r = requests.post(self._baseUrl+"connect", json=self._info)
         print(r)
         ret = r.json()
         code=ret["code"]
@@ -39,7 +40,8 @@ class Agent:
         else:
             data=ret["data"]
             if data:
-                return self.execCommands(data)
+                ret=self.execCommands(data)
+                return ret
             return None
 
     def getInfo(self):
@@ -51,6 +53,11 @@ class Agent:
 
     def execCommands(self, cmd):
         return self._shell.execCommand(cmd)
+
+    def sendResponse(self, resp):
+        print("Request: ", self._baseUrl + "result")
+        headers = {"x-session-id": self._id}
+        r = requests.post(self._baseUrl+"result", json=resp.toJson(), headers=headers)
 
 
     def execCommandsFromLine(self, cmd):

@@ -47,12 +47,11 @@ class _CommandsLoader:
         x=None
         if not name in self.commands:
             sys.stderr.write("Command '"+str(name)+"' not found\n")
-        #x = self.commands[name](shell, args)
         try:
             x=self.commands[name](shell, args)
             return x
         except KeyError as err:
-            return CommandReturn(errors.COMMAND_NOT_FOUND, str(name)+" : "+str(err)+"\n")
+            return CommandReturn(errors.COMMAND_NOT_FOUND, str(name)+" : commande inconnue\n")
 
 _instance=None
 

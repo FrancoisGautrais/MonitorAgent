@@ -4,6 +4,8 @@ from remove import clean
 import time
 from agent.agent import Agent
 import sys
+import traceback
+
 
 def doUpdate():
     r=None
@@ -17,10 +19,15 @@ def doUpdate():
         time.sleep(5)
 
 #doUpdate()
+
+print(Globals.getAllversionInformation())
 client  = Agent()
 client.connect()
-time.sleep(1)
-client.wait()
+while True:
+    ret=client.wait()
+    client.sendResponse(ret)
+
+
 
 """
 
