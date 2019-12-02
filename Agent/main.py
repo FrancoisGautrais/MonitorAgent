@@ -28,15 +28,3 @@ while True:
     client.sendResponse(ret)
 
 
-
-"""
-
-
-
-client  = Agent()
-client.execCommandsFromLine("print a b")
-for line in sys.stdin:
-    if len(line)>1:
-        print(client.execCommandsFromLine(line).out)
-"""
-

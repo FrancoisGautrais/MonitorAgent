@@ -72,7 +72,7 @@ class Command:
         if isinstance(x, CommandReturn):
             x.setid(self.id)
         else:
-            x=CommandReturn(-1, "")
+            x=CommandReturn(-1, "No result")
             x.setid(self.id)
         return x
 

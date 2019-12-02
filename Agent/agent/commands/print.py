@@ -5,12 +5,10 @@ from agent.commandreturn import CommandReturn
 from agent import errors
 from utils import execSystem
 from conf import Globals
+from .utils import start_thread
 
-def cmd_print(shell, text):
-    title, message = tuple(text)
-
+def _print(shell, title, message):
     os.environ["ZENITY_DATADIR"]=os.path.abspath(Globals.ZENITY + "\\..\\..\\share\\zenity\\")
-    print(os.path.abspath(Globals.ZENITY + "\\..\\.."), )
     if Globals.isWindows():
         wd = os.getcwd()
         os.chdir(os.path.abspath(Globals.ZENITY+"\\..\\.."))
@@ -18,9 +16,15 @@ def cmd_print(shell, text):
         execSystem([Globals.ZENITY,  '--error',  '--text='+message,  '--title='+title])
     except FileNotFoundError as err:
         if Globals.isWindows(): os.chdir(wd)
-        return CommandReturn(errors.BAD_PARAMETER, "Not found", "Commande 'zenity introuvable")
-
+        return CommandReturn(errors.MALFORMED_REQUEST, "Zenity Not found")
     if Globals.isWindows():  os.chdir(wd)
-    return CommandReturn(errors.OK, "OK")
+
+
+def cmd_print(shell, text):
+    title, message = tuple(text)
+
+    start_thread(_print, (shell, title, message))
+
+    return CommandReturn(errors.OK, "")
 
 

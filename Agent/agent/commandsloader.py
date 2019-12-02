@@ -48,11 +48,16 @@ class _CommandsLoader:
         if not name in self.commands:
             sys.stderr.write("Command '"+str(name)+"' not found\n")
         try:
+            state=os.getcwd()
+            os.chdir(shell.getPwd())
             x=self.commands[name](shell, args)
+            os.chdir(state)
+
             return x
         except KeyError as err:
             return CommandReturn(errors.COMMAND_NOT_FOUND, str(name)+" : commande inconnue\n")
-
+        except ValueError as err:
+            return CommandReturn(errors.MALFORMED_REQUEST, str(name)+" : "+str(err))
 _instance=None
 
 def call(shell, name, args=[]):

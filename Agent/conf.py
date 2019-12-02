@@ -4,6 +4,7 @@ import socket
 import uuid
 
 class Globals:
+
     def __init__(self):
         self._os=platform.system()
         self._osRelease=platform.release()
@@ -16,7 +17,7 @@ class Globals:
         self._dir=os.path.dirname(os.path.realpath(__file__))
         self._conf=os.path.join(self._dir,"conf/")
         self._name=socket.gethostname()
-        self._uuid=uuid.getnode()
+        self._uuid=str(uuid.getnode())
         with open("version") as f:
             self._version=tuple(f.read().split("."))
 

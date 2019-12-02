@@ -9,7 +9,7 @@ class Shell:
         self._env={ "PATH" : os.environ["PATH"] }
         self._agent=agent
         self._parent=parent
-        self._dir="C:\\" if Globals.isWindows() else "/"
+        self._dir=os.getcwd()
         self._history=[]
 
     def getAgent(self):

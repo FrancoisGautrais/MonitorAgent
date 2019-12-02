@@ -42,7 +42,6 @@ def execSystem(cmd, pipe=True,input=None):
         #x = subprocess.Popen(cmd)
         print(cmd)
         if Globals.isWindows():
-            print(argsToString(cmd))
             os.system(argsToString(cmd))
         else:
             pid=os.fork()

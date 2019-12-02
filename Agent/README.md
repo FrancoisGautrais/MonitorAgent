@@ -1,0 +1,4 @@
+module:
+- wget
+- requests
+- psutil
