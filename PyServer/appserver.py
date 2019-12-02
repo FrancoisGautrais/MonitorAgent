@@ -10,7 +10,7 @@ import json
 from command import Command
 from client import Client
 from httpserver.utils import Callback
-
+from servercommands.commandsloader import CommandReturn
 import pystache
 
 def html_template(path, data):
@@ -35,24 +35,38 @@ class AppServer(RESTServer):
 
     def __init__(self, ip="localhost"):
         RESTServer.__init__(self, ip)
-        self._clients=AppData()
+        self._clients=AppData.load()
         self._connected={}
+        self._admins={}
+
+
         self.route("POST", "/connect", AppServer.on_connect, self)
         self.route("GET", "/poll", AppServer.on_poll, self)
         self.route("GET", "/wait", AppServer.on_wait, self)
+        self.route("PUT", "/file", AppServer.on_put_file, self)
+        self.route("GET", "/file/#id", AppServer.on_get_file, self)
         self.route("POST", "/result", AppServer.on_result, self)
         self.route("GET", "/result/#clientid/#cmdid", AppServer.on_get_result, self)
         self.route("GET", "/admin/login", AppServer.admin_on_auth, self)
         self.route("GET", "/admin/disconnect", AppServer.admin_on_disconnect, self)
         self.route("POST", "/admin/command", AppServer.admin_on_command, self)
+        self.route("POST", "/admin/command/texte", AppServer.admin_on_command_texte, self)
+        self.route("POST", "/admin/server/command", AppServer.admin_on_server_command, self)
+
         self.route(["GET", "POST"], MOUSTACHES_FILES, AppServer.admin_moustache, self)
         self.static("/admin", "www", authcb=Callback(AppServer.isAuthorized, self),
                     needauthcb=Callback(AppServer.needAuth, self))
-        self._admins={}
-        self._clients.connect({'os': 'Linux', 'osRelease': '4.14.134-1-MANJARO', 'osVersion': '4.14.134-1-MANJARO', 'pythonVersion': '3.7.3', 'version': (0, 0, 0), 'name': 'Fanch-Fixe', 'uuid': 53447160892554})
-        self._clients.connect({'os': 'Windows', 'osRelease': '4.14.134-1-MANJARO', 'osVersion': '4.14.134-1-MANJARO', 'pythonVersion': '3.7.3', 'version': (0, 0, 0), 'name': 'Fanch-Fixe', 'uuid': 53447160892555})
-        self._clients.connect({'os': 'Windows', 'osRelease': '4.14.134-1-MANJARO', 'osVersion': '4.14.134-1-MANJARO', 'pythonVersion': '3.7.3', 'version': (0, 0, 0), 'name': 'Fanch-Fixe', 'uuid': 53447160892556})
-        self._clients.connect({'os': 'Windows', 'osRelease': '4.14.134-1-MANJARO', 'osVersion': '4.14.134-1-MANJARO', 'pythonVersion': '3.7.3', 'version': (0, 0, 0), 'name': 'Fanch-Fixe', 'uuid': 53447160892557})
+
+    def clients(self, id=None):
+        return self._clients[id] if id else self._clients
+
+    def removeClient(self, id):
+        for k in self._connected:
+            if self._connected[k].id==id:
+                del self._connected[id]
+                self._clients.removeClient(id)
+                return True
+        return False
 
     def needAuth(self, req, res):
         for k in ALLOWED:
@@ -89,19 +103,24 @@ class AppServer(RESTServer):
         c=self._clients.connect(data)
         id=str(uuid.uuid4())
         self._connected[id]=c
+        c.status=Client.STATUS_CONNECTED
         res.addHeader("x-session-id", id)
+        self._clients.save(False)
+        c.save()
         res.ok(errors.OK, "OK", None)
 
     def on_poll(self, req: HTTPRequest, res: HTTPResponse):
         c=self.getClient(req, res)
         if not c: return
         cmd=c.wait_fo_command(False)
+        c.status = Client.STATUS_WAITING
         res.ok(errors.OK, "OK", cmd.json())
 
     def on_wait(self, req : HTTPRequest, res : HTTPResponse):
         c=self.getClient(req, res)
         if not c: return
         cmd=c.wait_fo_command()
+        c.status = Client.STATUS_WAITING
         res.ok(errors.OK, "OK", cmd.json())
 
 
@@ -142,29 +161,43 @@ class AppServer(RESTServer):
 
         del self._admins[id]
 
-
-    def admin_on_command(self,req : HTTPRequest, res : HTTPResponse):
+    def admin_on_server_command(self,req : HTTPRequest, res : HTTPResponse):
         if not self.isAuthorized(req, res): return
         data = json.loads(req.data)
         cmd=Command.fromText(data["cmd"])
-        id=data["target"]
-        sync=data["sync"]
+        out=cmd.start(self).json()
+        res.ok(errors.OK, "OK", out)
+
+    def _on_command(self, cmd, req : HTTPRequest, res : HTTPResponse):
+        data = json.loads(req.data)
+        id = data["target"]
+        sync = data["sync"]
         if not id in self._clients._clients:
-            return res.not_found(errors.ID_NOT_FOUND, "Id "+id+" not found", None)
+            return res.not_found(errors.ID_NOT_FOUND, "Id " + id + " not found", None)
 
-        c=self._clients._clients[id]
+        c = self._clients._clients[id]
         c.send(cmd)
-
         if sync:
             r = c.findResponse(cmd.id)
             while not r:
                 time.sleep(0.01)
-                r=c.findResponse(cmd.id)
+                r = c.findResponse(cmd.id)
             res.ok(errors.OK, "OK", r)
+        else:
+            res.ok(errors.OK, "OK", CommandReturn(errors.OK, "").json())
+        print(cmd.json())
 
-        print(cmd)
+    def admin_on_command_texte(self, req: HTTPRequest, res: HTTPResponse):
+        if not self.isAuthorized(req, res): return
+        data = json.loads(req.data)
+        cmd = Command.fromText(data["cmd"])
+        self._on_command(cmd, req, res)
 
-
+    def admin_on_command(self, req: HTTPRequest, res: HTTPResponse):
+        if not self.isAuthorized(req, res): return
+        data = json.loads(req.data)
+        cmd = Command.fromJs(data["cmd"])
+        self._on_command(cmd, req, res)
 
     def getMoustacheData(self):
         out={}
@@ -218,5 +251,26 @@ class AppServer(RESTServer):
         res.ok(errors.OK, "OK", r)
 
 
+    def on_get_file(self, req : HTTPRequest, res : HTTPResponse):
+        id=req.restparams["id"]
+        path="download/"+id
+        if not self._clients.hasFile(id):
+            return res.not_found(errors.FILE_NOT_FOUND, "Not found", None)
+
+        res.headers["Content-Disposition"]= 'attachment; filename="'+self._clients.getFileInfo(id)["filename"]+'"'
+        res.serveFile(path)
+        os.remove(path)
+        self._clients.removeFile(id)
+
+    def on_put_file(self, req : HTTPRequest, res : HTTPResponse):
+        c=self.getClient(req, res)
+        id=str(uuid.uuid4())
+        path = "download/" + id
+
+        with open(path, "wb") as f:
+            f.write(req.data)
+            self._clients.addFile(id, req.headers["x-filename"], c.id)
+            return res.ok(errors.OK, "OK", id)
+        return res.unauthorized(errors.ERROR_HTTP, "", "Unknown error")
 
 

@@ -1,0 +1,31 @@
+<h4>Mémoire</h4>
+<div class="action"><div class="progress">
+      <div class="determinate" id="memprogress" style="width: 0%"></div>
+    <div class="determinate" id="memprogress2" style="background-color: #cebc28; width: 0%"></div>
+  </div> </div>
+<div class="action">Totale <b id="totalmem"></b> Utilisée <b id="usedmem"></b> ou <b id="usedmempc"></b> </div>
+
+<h4>CPUs</h4>
+
+<table class="responsive-table centered striped">
+    <thead>
+      <tr>
+          <th>#</th>
+          <th>Fréquence Max</th>
+          <th>Fréquence</th>
+          <th>Utilisation</th>
+          <th>Utilisation</th>
+      </tr>
+    </thead>
+
+    <tbody id="sys_body">
+    </tbody>
+  </table>
+
+<script>
+
+
+    sys_body=$("#sys_body")
+      $('.collapsible').collapsible();
+     systemrefresh()
+ </script>

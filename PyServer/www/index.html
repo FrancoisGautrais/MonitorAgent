@@ -75,7 +75,7 @@
             <div class="secondary-content icondock">
               {{#info}}
               <span class="icon-preferences-system-symbolic middle" onclick="on_options({{uuid}})"></span>
-              <span class="icon-utilities-terminal-symbolic middle" onclick="on_terminal({{uuid}})"></span>
+
               <span class="icon-system-reboot-symbolic middle" onclick="on_reboot({{uuid}})"></span>
               <span class="icon-system-shutdown-symbolic middle" onclick="on_shutdown({{uuid}})"></span>
               {{/info}}
@@ -84,6 +84,18 @@
         </ul>
       {{/clients}}
       </div>
+      <div class="row">
+
+           <div class="input-field col s12" id="log">
+
+           </div>
+           <div class="input-field col s12" >
+                <input placeholder="Entrez une commande" id="input_command" type="text" class="validate">
+                <label for="input_command">Entrez une commande</label>
+            </div>
+
+
+       </div>
 
     <div class="section"></div>
     <div class="section"></div>
@@ -92,6 +104,7 @@
   <script type="text/javascript" src="js/jquery.min.js"></script>
   <script type="text/javascript" src="js/materialize.min.js"></script>
   <script type="text/javascript" src="js/list.js"></script>
+  <script type="text/javascript" src="js/index.js"></script>
 </body>
 
 </html>

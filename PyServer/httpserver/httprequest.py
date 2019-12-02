@@ -53,7 +53,8 @@ class _HTTP:
 
 
     def getPostParams(self):
-        post=str(self.data)
+
+        post=self.data.decode("utf-8") if self.data else ""
         out={}
         for k in post.split("&"):
             n=k.find("=")

@@ -1,15 +1,20 @@
 
 import magic
+from threading import Lock
+_mime_lock=None
+
+if not _mime_lock:
+    _mime_lock=Lock()
 
 def mime(path):
-    return "text/plain"
-    """
     try:
+        _mime_lock.acquire()
         x=magic.detect_from_filename(path)
-        return x.mime_type
+        mi= x.mime_type
+        _mime_lock.release()
+        return mi
     except:
         return "text/plain"
-    """
 
 class Callback:
 

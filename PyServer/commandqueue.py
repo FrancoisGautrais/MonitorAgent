@@ -1,21 +1,40 @@
 import time
 import asyncio
+from command import Command
+
+from threading import Condition, Lock
 class CommandQueue:
 
-    def __init__(self, blocking=True):
+    def __init__(self, js=None):
         self.queue=[]
-        #self.cond = asyncio.Condition()
+        if js:
+            queue=js
+            print(js)
+            for cmd in queue:
+                self.queue.append(Command(js=queue[cmd]))
+        self._lock=Lock()
+
+    def json(self):
+        out=[]
+        for cmd in self.queue:
+            out.append(cmd.json())
+        return out
 
     def isempty(self):
         return len(self.queue)==0
 
     def enqueue(self, v):
         self.queue.append(v)
+        if self._lock.locked(): self._lock.release()
         return v
 
     def dequeue(self, blocking=True):
         if blocking:
-            while self.isempty(): time.sleep(0.01)
+            #self._lock.acquire()
+            print("locked")
+            while self.isempty(): self._lock.acquire()
+            print("unlocked")
+            if self._lock.locked(): self._lock.release()
 
             return self.queue.pop(0)
 
@@ -28,27 +47,6 @@ class CommandQueue:
             if cmd.id==id:
                 return True
         return False
-    """
-    async def enqueue(self, v):
-        self.queue.append(v)
-        if len(self.queue)==1:
-            try:
-                self.cond.release()
-            except:
-                pass
-        return v
-    
-    async def dequeue(self, blocking=True):
-        if blocking:
-            async with self.cond:
-                await self.cond.wait()
 
-            return self.queue.pop(0)
-
-        elif len(self.queue)>0:
-            return self.queue.pop(0)
-        return None
-        
-    """
 
 

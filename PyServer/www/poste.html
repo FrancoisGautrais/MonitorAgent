@@ -54,6 +54,10 @@
       margin-right: 20px;
      }
 
+     .action {
+        margin-bottom: 12px;
+     }
+
      #log{height:100pt;overflow:auto}
   </style>
 </head>
@@ -68,38 +72,68 @@
 
 
       <div class="container">
+          <ul class="collapsible">
+            <li>
+              <div class="collapsible-header"><i class="material-icons">info</i>Informations</div>
+              <div class="collapsible-body">
+                  <table>
+                    <thead>
+                      <tr>
+                          <th>Propriété</th>
+                          <th>Valeur</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                        {{#desc}}
+                          <tr>
+                            <td>{{field}}</td>
+                            <td>{{value}}</td>
+                          </tr>
+                        {{/desc}}
+                    </tbody>
+                  </table>
+              </div>
+            </li>
+            <li onclick="systemtabclick()">
+              <div class="collapsible-header" ><i class="material-icons">equalizer</i></span>Système</div>
+              <div class="collapsible-body" id="systemtab">
+                  <div class="row">
+                    <div id="systemdiv"></div>
+                    </div>
+            </li>
+            <li onclick="proctabclick()">
+              <div class="collapsible-header" ><i class="material-icons">settings</i></span>Processus</div>
+              <div class="collapsible-body" id="proctab">
+                  <div class="row">
+                    <div id="procdiv"></div>
+                    </div>
+            </li>
+            <li>
+              <div class="collapsible-header"><i class="material-icons">add</i>Actions</div>
+              <div class="collapsible-body">
+                  <div id="actiondiv"></div>
+              </div>
+            </li>
+            <li>
+              <div class="collapsible-header"><span class="icon-utilities-terminal-symbolic middle" onclick="on_terminal({{uuid}})"></span>Console</div>
+              <div class="collapsible-body">
+                  <div class="row">
+
+                       <div class="input-field col s12" id="log">
+
+                       </div>
+                       <div class="input-field col s12" >
+                            <input placeholder="Entrez une commande" id="input_command" type="text" class="validate">
+                            <label for="input_command">Entrez une commande</label>
+                        </div>
+                    </div>
+              </div>
+            </li>
+          </ul>
 
 
-          <table>
-            <thead>
-              <tr>
-                  <th>Propriété</th>
-                  <th>Valeur</th>
-              </tr>
-            </thead>
 
-            <tbody>
-                {{#desc}}
-                  <tr>
-                    <td>{{field}}</td>
-                    <td>{{value}}</td>
-                  </tr>
-                {{/desc}}
-            </tbody>
-          </table>
-      </div>
-       <div class="row">
-
-           <div class="input-field col s12" id="log">
-
-           </div>
-           <div class="input-field col s11" >
-                <input placeholder="Entrez une commande" id="input_command" type="text" class="validate">
-                <label for="input_command">Entrez une commande</label>
-            </div>
-             <a class="btn waves-effect waves-light col s1" type="submit" name="action" onclick="on_send()">
-                <center> <i class="material-icons right">send</i></center>
-             </a>
 
 
        </div>

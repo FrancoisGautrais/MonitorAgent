@@ -1,7 +1,7 @@
 import uuid
 import json
 from httpserver.utils import Callback
-
+from servercommands.commandsloader import call, CommandReturn
 class Lexer:
 
     def __init__(self, text):
@@ -53,10 +53,16 @@ class Lexer:
 
 class Command:
 
-    def __init__(self, cmd, args=[], cb=Callback()):
-        self.id=str(uuid.uuid4())
-        self.cmd=cmd
-        self.args=args
+    def __init__(self, cmd=None, args=[], cb=Callback(), js=None):
+        if not js:
+            self.id=str(uuid.uuid4())
+            self.cmd=cmd
+            self.args=args
+        else:
+            print(js)
+            self.id = js["id"]
+            self.cmd = js["cmd"]
+            self.args = js["args"]
         self.callback=cb
 
     def json(self):
@@ -85,5 +91,17 @@ class Command:
         args = []
         while l.next() != None and l.peak() != "":
             args.append(l.peak().rstrip())
-
         return Command(cmd,args)
+
+    @staticmethod
+    def fromJs(js):
+        return Command(js["cmd"], js["args"])
+
+    def start(self, server):
+        x=call(server, self.cmd, self.args)
+        if isinstance(x, CommandReturn):
+            x.setid(self.id)
+        else:
+            x=CommandReturn(-1, "")
+            x.setid(self.id)
+        return x

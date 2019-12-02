@@ -37,8 +37,12 @@ class SocketWrapper:
         return self.read_str()
 
     def close(self):
-        self._socket.shutdown(socket.SHUT_WR)
-        return self._socket.close()
+        try:
+            self._socket.shutdown(socket.SHUT_WR)
+            return self._socket.close()
+        except:
+            return None
+
 
 
 

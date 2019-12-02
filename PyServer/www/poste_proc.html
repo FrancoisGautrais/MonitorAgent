@@ -1,0 +1,32 @@
+<div class="input-field col s12">
+      <input  id="proc_filter" type="text" class="validate">
+      <label for="proc_filter">Filtrer</label>
+</div>
+
+<table class="responsive-table centered striped">
+    <thead>
+      <tr>
+          <th>Pid</th>
+          <th>Processus</th>
+          <th>Cpu</th>
+          <th>Mémoire</th>
+          <th>Lancment</th>
+          <th>action</th>
+      </tr>
+    </thead>
+
+    <tbody id="proc_body">
+    </tbody>
+  </table>
+
+<script>
+    proc_body=$("#proc_body")
+      $('.collapsible').collapsible();
+     procrefresh()
+     $("#proc_filter").on('input',function(){
+        proc_filter($("#proc_filter").val())
+     })
+     $("#proc_filter").change(function(){
+        proc_filter($("#proc_filter").val())
+     })
+ </script>

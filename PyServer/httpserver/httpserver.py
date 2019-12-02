@@ -48,14 +48,14 @@ class HttpSocket(SocketWrapper):
 
     def nextrequest(self):
         req=self._readHeaders()
-        if req.method == "GET": return req
-        if req.method == "POST": return self._readPostData(req)
+        if req.method in ["GET"]: return req
+        if req.method in ["POST", "PUT"]: return self._readPostData(req)
         raise Exception("Method '"+req.method+"' non gérée")
 
     def _readPostData(self, req : HTTPRequest):
         if not req.hasheader("Content-Length"):
             raise Exception("Content-Length field not filled")
-        req.data=self.read_str(req.contentLength())
+        req.data=self.read_bin(req.contentLength())
         return req
 
     def _readHeaders(self):
