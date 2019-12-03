@@ -190,7 +190,7 @@ function systemrefresh(force=false){
     $("#usedmempc").html( ff((mem.total-mem.free)/mem.total*100, 2) + " %")
     $("#memprogress").css("width", ff((mem.active)/mem.total*100, 0)+"%")
     $("#memprogress2").css("left", ff((mem.active)/mem.total*100, 0)+"%")
-    $("#memprogress2").css("width", ff((mem.free-mem.active)/mem.total*100, 0)+"%")
+    $("#memprogress2").css("width", ff(( (mem.total-mem.free)-mem.active)/mem.total*100, 0)+"%")
 
     if(sys_body.children().length==0)
     {

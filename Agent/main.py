@@ -21,10 +21,18 @@ def doUpdate():
 #doUpdate()
 
 print(Globals.getAllversionInformation())
-client  = Agent()
-client.connect()
+#client  = Agent()
+#client.connect()
+"""
 while True:
-    ret=client.wait()
+    ret=client.poll()
     client.sendResponse(ret)
+"""
+
+for i in range(0,100000):
+    r = requests.post("http://localhost:8080/admin/index.html")
+    print(r)
+    #ret=client.poll()
+    #client.sendResponse(ret)
 
 

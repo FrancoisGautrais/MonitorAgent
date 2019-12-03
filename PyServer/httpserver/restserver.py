@@ -43,17 +43,18 @@ class RESTServer(HTTPServer):
     def handlerequest(self, req, res):
         m = req.method
         u = req.path
-        if not m in self._handlers: return
 
-        d = self._handlers[m]
         found = None
+        d={}
+        if m in self._handlers:
+            d = self._handlers[m]
 
-        for url in d:
-            if url:
-                args = testurl(url, req.path)
-                if args != None:
-                    found = d[url]
-                    req.restparams = args
+            for url in d:
+                if url:
+                    args = testurl(url, req.path)
+                    if args != None:
+                        found = d[url]
+                        req.restparams = args
 
         if found == None:
             p=req.path

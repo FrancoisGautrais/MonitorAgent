@@ -2,6 +2,8 @@ from .socketwrapper import SocketWrapper, ServerSocket
 from .httprequest import HTTPResponse, HTTPRequest, testurl, HTTP_OK, STR_HTTP_ERROR, HTTP_NOT_FOUND
 from threading import Thread
 
+_val=open("request", "rb").read()
+
 import os
 class HttpSocket(SocketWrapper):
 
@@ -38,11 +40,6 @@ class HttpSocket(SocketWrapper):
             d=res.getbodybytes()
             self.send(res.getheadersbytes()+(d if d else bytes()))
 
-            try:
-                if d:  self.send(d)
-            except Exception as err:
-                print(err, self.sent, res.headers["Content-Length"])
-                print(str(res.getheadersbytes()))
 
         return total
 
@@ -59,7 +56,25 @@ class HttpSocket(SocketWrapper):
         return req
 
     def _readHeaders(self):
+
         req=HTTPRequest()
+
+        x=bytes()
+        while not x.endswith( bytes("\r\n\r\n", "utf8")):
+            x+=self._socket.recv(1)
+        
+        x=x.decode("utf8").split("\r\n")[:-2]
+        head = x[0].split(" ")
+        req.method = head[0]
+        req.setUrl(head[1])
+        req.version = head[2]
+
+        for i in range(1, len(x)):
+            line=x[i]
+            key = line[:line.find(":")]
+            val = line[line.find(":") + 1:].lstrip()
+            req.setheader(key, val)
+        """
         head=self._readline().split()
         req.method=head[0]
         req.setUrl(head[1])
@@ -71,6 +86,8 @@ class HttpSocket(SocketWrapper):
             val=line[line.find(":")+1:].lstrip()
             req.setheader(key, val)
             line=self._readline()[:-1]
+        """
+
         return req
 
 
@@ -94,10 +111,12 @@ class _ThreadWrapper(Thread):
 def _start_thread(fct, obj, data):
     t=_ThreadWrapper(fct, obj, data)
     t.start()
+    #fct(obj, data)
 
     return t
+import time
 
-
+import socket
 class HTTPServer(ServerSocket):
 
     def __init__(self, ip="localhost"):
@@ -116,8 +135,12 @@ class HTTPServer(ServerSocket):
     def _handlerequest(self, soc : HttpSocket):
         req=soc.nextrequest()
         res=HTTPResponse(200, )
+        x=time.time()*1000
         self.handlerequest(req, res)
+        soc._socket.shutdown(socket.SHUT_RD)
+        print((time.time()*1000-x),"ms ", soc._socket.fileno())
         soc.sendResponse(res)
+        #soc._socket.send(_val)
         soc.close()
 
     def handlerequest(self, req, res):

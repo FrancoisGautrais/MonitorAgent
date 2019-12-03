@@ -1,23 +1,26 @@
 import socket
 from threading import Thread
+content=open("request", "rb").read()
 
+
+import time
 class SocketWrapper:
-
     def __init__(self, llsocket):
         self._socket=llsocket
         self.sent=0
 
+    def do(self):
+        x=bytes()
+
+        while not x.endswith( bytes("\r\n\r\n", "utf8")):
+            x+=self._socket.recv(1)
+        self._socket.sendall(content)
+
+
     def send(self, s):
         if isinstance(s, str): s = bytes(s, "utf8")
-        x=self._socket.sendall(s)
+        return self._socket.sendall(s)
         #self.sent+=x
-        return x
-        """try:
-            x=self._socket.send(s)
-            self.sent+=x
-        except Exception as err:
-            print(err, self.sent)
-        return x"""
 
     def read_bin(self, l=1):
         chunks = []
@@ -60,7 +63,7 @@ class ServerSocket(SocketWrapper):
         self._port=port
         print("Listening on", ip, "at port", port,"...")
         self._socket.bind((ip, port))
-        self._socket.listen(5)
+        self._socket.listen(50)
 
     def accept(self, cb=None, args=[]):
         (clientsocket, address) = self._socket.accept()
