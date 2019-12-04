@@ -94,10 +94,10 @@ class AppServer(RESTServer):
         return True
 
     def getClient(self, req : HTTPRequest, res : HTTPResponse):
-        if not req.hasheader("x-session-id"):
+        if not req.header("x-session-id"):
             res.bad_request(errors.ERROR_HTTP, "Le header 'x-seesion-id' n'est pas transmis", [])
             return None
-        id= req.headers["x-session-id"]
+        id= req.header("x-session-id")
         if not id in self._connected:
             res.unauthorized(errors.BAD_SESSION, "Session invalide", [])
             return None
@@ -105,12 +105,12 @@ class AppServer(RESTServer):
         return self._connected[id]
 
     def on_connect(self, req : HTTPRequest, res : HTTPResponse):
-        data = json.loads(req.data)
+        data = req.body_json()
         c=self._clients.connect(data)
         id=str(uuid.uuid4())
         self._connected[id]=c
         c.status=Client.STATUS_CONNECTED
-        res.addHeader("x-session-id", id)
+        res.header("x-session-id", id)
         self._clients.save(False)
         c.save()
         res.ok(errors.OK, "OK", None)
@@ -143,19 +143,19 @@ class AppServer(RESTServer):
             res.not_found(errors.ID_NOT_FOUND, "L'id de la réponse n'existe pas")
 
     def admin_on_auth(self, req : HTTPRequest, res : HTTPResponse):
-        if not req.hasheader("x-user") or not req.hasheader("x-password"):
+        if not req.header("x-user") or not req.header("x-password"):
             return res.bad_request(errors.ERROR_HTTP, "Identifiant non fourni", None)
 
-        if not self._clients.auth(req.headers["x-user"],req.headers["x-password"]):
+        if not self._clients.auth(req.header("x-user"),req.header("x-password")):
             return res.unauthorized(errors.ERROR_HTTP, "Mot de passe ou login invalid", None)
 
         id=str(uuid.uuid4())
         t=100000
         self._admins[id]=time.time()+t
-        res.headers["Set-Cookie"]="session-id="+id+"; Max-Age="+str(t)
+        res.header("Set-Cookie", "session-id="+id+"; Max-Age="+str(t))
 
     def admin_on_disconnect(self, req : HTTPRequest, res : HTTPResponse):
-        res.headers["Set-Cookie"] = "token = deleted; path = /; expires = Thu, 01 Jan 1970 00: 00:00 GMT"
+        res.header("Set-Cookie", "token = deleted; path = /; expires = Thu, 01 Jan 1970 00: 00:00 GMT")
 
         if not "session-id" in req.cookies:
             res.temporary_redirect("/admin/login.html")
@@ -239,8 +239,8 @@ class AppServer(RESTServer):
 
     def on_get_result(self, req : HTTPRequest, res : HTTPResponse):
         if not self.isAuthorized(req, res): return
-        cid=req.restparams["clientid"]
-        cmdid=req.restparams["cmdid"]
+        cid=req.params["clientid"]
+        cmdid=req.params["cmdid"]
         if not self._clients.has(cid):
             return res.not_found(errors.ID_NOT_FOUND, "Client not found", None)
 
@@ -258,13 +258,13 @@ class AppServer(RESTServer):
 
 
     def on_get_file(self, req : HTTPRequest, res : HTTPResponse):
-        id=req.restparams["id"]
+        id=req.params["id"]
         path="download/"+id
         if not self._clients.hasFile(id):
             return res.not_found(errors.FILE_NOT_FOUND, "Not found", None)
 
-        res.headers["Content-Disposition"]= 'attachment; filename="'+self._clients.getFileInfo(id)["filename"]+'"'
-        res.serveFile(path)
+        res.header("Content-Disposition", 'attachment; filename="'+self._clients.getFileInfo(id)["filename"]+'"')
+        res.serve_file(path)
         os.remove(path)
         self._clients.removeFile(id)
 
@@ -275,7 +275,7 @@ class AppServer(RESTServer):
 
         with open(path, "wb") as f:
             f.write(req.data)
-            self._clients.addFile(id, req.headers["x-filename"], c.id)
+            self._clients.addFile(id, req.header("x-filename"), c.id)
             return res.ok(errors.OK, "OK", id)
         return res.unauthorized(errors.ERROR_HTTP, "", "Unknown error")
 

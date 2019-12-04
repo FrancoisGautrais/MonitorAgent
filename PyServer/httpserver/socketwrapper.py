@@ -9,20 +9,13 @@ class SocketWrapper:
         self._socket=llsocket
         self.sent=0
 
-    def do(self):
-        x=bytes()
-
-        while not x.endswith( bytes("\r\n\r\n", "utf8")):
-            x+=self._socket.recv(1)
-        self._socket.sendall(content)
-
 
     def send(self, s):
         if isinstance(s, str): s = bytes(s, "utf8")
         return self._socket.sendall(s)
-        #self.sent+=x
 
-    def read_bin(self, l=1):
+    def read(self, l=1):
+        if len==1: return self._socket.recv(1)
         chunks = []
         bytes_recd = 0
         while bytes_recd < l:
@@ -34,7 +27,15 @@ class SocketWrapper:
         return b''.join(chunks)
 
     def read_str(self, len=1):
-        return str(self.read_bin(len), encoding="utf8")
+        return str(self.read(len), encoding="utf8")
+
+    def readline(self):
+        out=""
+        x=self._socket.recv(1)
+        while x[0]!=10:
+            out+=x.decode("utf8")
+            x = self._socket.recv(1)
+        return out
 
     def readc(self):
         return self.read_str()

@@ -37,7 +37,7 @@ class RESTServer(HTTPServer):
     def _404(self, req: HTTPRequest, res: HTTPResponse):
         res.code = 404
         res.msg = "Not Found"
-        res.contentType("text/plain")
+        res.content_type("text/plain")
         res.end(req.path + " Not found")
 
     def handlerequest(self, req, res):
@@ -54,7 +54,7 @@ class RESTServer(HTTPServer):
                     args = testurl(url, req.path)
                     if args != None:
                         found = d[url]
-                        req.restparams = args
+                        req.params = args
 
         if found == None:
             p=req.path
@@ -66,7 +66,7 @@ class RESTServer(HTTPServer):
                     if p[0]=="/": p=p[1:]
                     path=os.path.join(dir,p)
                     if  (not auth) or (not needeauth) or (not needeauth.call((req, res))) or auth.call((req, res)):
-                        res.serveFile( path, base+"/"+p)
+                        res.serve_file( path, base+"/"+p)
                     return
 
         if found == None:
