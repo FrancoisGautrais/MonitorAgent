@@ -21,14 +21,13 @@ def doUpdate():
 #doUpdate()
 
 print(Globals.getAllversionInformation())
-#client  = Agent()
-#client.connect()
-"""
+client  = Agent("http://192.168.1.165:8080/")
+client.connect()
 while True:
-    ret=client.poll()
+    ret=client.wait()
     client.sendResponse(ret)
-"""
 
+"""
 for i in range(0,100000):
     r = requests.post("http://localhost:8080/admin/index.html")
     print(r)
@@ -36,3 +35,4 @@ for i in range(0,100000):
     #client.sendResponse(ret)
 
 
+"""
