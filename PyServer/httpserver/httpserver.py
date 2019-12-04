@@ -43,8 +43,8 @@ class HttpSocket(SocketWrapper):
 
         return total
 
-    def nextrequest(self):
-        req=self._readHeaders()
+    def nextrequest(self, firstline=None):
+        req=self._readHeaders(firstline)
         if req.method in ["GET"]: return req
         if req.method in ["POST", "PUT"]: return self._readPostData(req)
         raise Exception("Method '"+req.method+"' non gérée")
@@ -55,19 +55,24 @@ class HttpSocket(SocketWrapper):
         req.data=self.read_bin(req.contentLength())
         return req
 
-    def _readHeaders(self):
+    def _readHeaders(self, firstline):
 
         req=HTTPRequest()
 
         x=bytes()
         while not x.endswith( bytes("\r\n\r\n", "utf8")):
             x+=self._socket.recv(1)
-        
-        x=x.decode("utf8").split("\r\n")[:-2]
-        head = x[0].split(" ")
+
+        x = x.decode("utf8").split("\r\n")[:-2]
+        if not firstline:
+            head = x[0].split(" ")
+        else:
+            head=firstline.split(" ")
         req.method = head[0]
         req.setUrl(head[1])
         req.version = head[2]
+
+
 
         for i in range(1, len(x)):
             line=x[i]
@@ -106,7 +111,7 @@ class _ThreadWrapper(Thread):
         self.fct=fct
 
     def run(self):
-        self.fct(self.obj, self.data)
+        self.fct(self.obj, *self.data)
 
 def _start_thread(fct, obj, data):
     t=_ThreadWrapper(fct, obj, data)
@@ -130,13 +135,17 @@ class HTTPServer(ServerSocket):
         while True:
             x=super().accept()
             soc= HttpSocket(x)
-            _start_thread( HTTPServer._handlerequest, self, soc)
+            line= soc._readline()
+            print("req : ", line.split(" ")[1], " --------- >")
+            _start_thread( HTTPServer._handlerequest, self, (soc, line))
 
-    def _handlerequest(self, soc : HttpSocket):
-        req=soc.nextrequest()
+    def _handlerequest(self, soc : HttpSocket, firstlin):
+        req=soc.nextrequest(firstlin)
         res=HTTPResponse(200, )
         x=time.time()*1000
         self.handlerequest(req, res)
+
+        print(" <------- ", req.path)
         soc.sendResponse(res)
         #soc._socket.send(_val)
         soc.close()

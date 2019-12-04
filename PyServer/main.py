@@ -39,7 +39,7 @@ while True:
     x.do()
 
 """
-server= AppServer("192.168.1.165")
+server= AppServer("localhost")
 #server.route("GET", "/create/#x/#y/z", RESTServer.create, server)
 #server.route("GET", "/delete", socketwrapper.HTTPServer.delete,server )
 #server.route("GET", "/update", socketwrapper.HTTPServer.update,server )

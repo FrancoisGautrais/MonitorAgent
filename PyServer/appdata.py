@@ -107,8 +107,9 @@ class AppData:
         out["admin"] = self._admin
 
         path=Conf.savedir("server.js")
+        jsdata=json.dumps(out)
         with open(path, "w") as f:
-            f.write(json.dumps(out))
+            f.write(jsdata)
 
 
 

@@ -21,7 +21,7 @@ def doUpdate():
 #doUpdate()
 
 print(Globals.getAllversionInformation())
-client  = Agent("http://192.168.1.165:8080/")
+client  = Agent("http://localhost:8080/")
 client.connect()
 while True:
     ret=client.wait()

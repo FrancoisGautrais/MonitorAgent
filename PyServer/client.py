@@ -74,8 +74,9 @@ class Client:
 
     def save(self):
         path=Conf.savedir(self.id+".json")
+        jsdata=json.dumps(self.json())
         with open(path, "w") as f:
-            f.write(json.dumps(self.json()))
+            f.write(jsdata)
 
     @staticmethod
     def load(id):
