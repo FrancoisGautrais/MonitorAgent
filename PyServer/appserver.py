@@ -37,7 +37,6 @@ class AppServer2(RESTServer):
         RESTServer.__init__(self, ip)
         self.static("/admin", "www")
 
-_req=open("request").read()
 class AppServer(RESTServer):
 
     def __init__(self, ip="localhost"):
@@ -121,7 +120,7 @@ class AppServer(RESTServer):
         if not c: return
         cmd=c.wait_fo_command(False)
         c.status = Client.STATUS_WAITING
-        res.ok(errors.OK, "OK", cmd.json() if cmd else { "id": "132", "cmd"  :"nop", "args":[],"other":_req})
+        res.ok(errors.OK, "OK", cmd.json())
 
     def on_wait(self, req : HTTPRequest, res : HTTPResponse):
         c=self.getClient(req, res)

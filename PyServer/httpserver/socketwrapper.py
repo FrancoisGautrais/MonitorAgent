@@ -1,6 +1,6 @@
 import socket
 from threading import Thread
-content=open("request", "rb").read()
+#content=open("request", "rb").read()
 
 
 import time
@@ -67,6 +67,7 @@ class ServerSocket(SocketWrapper):
 
     def accept(self, cb=None, args=[]):
         (clientsocket, address) = self._socket.accept()
+        print("---->")
         client = SocketWrapper(clientsocket)
         if cb: cb(client, args)
         return client

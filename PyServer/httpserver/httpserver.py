@@ -2,7 +2,7 @@ from .socketwrapper import SocketWrapper, ServerSocket
 from .httprequest import HTTPResponse, HTTPRequest, testurl, HTTP_OK, STR_HTTP_ERROR, HTTP_NOT_FOUND
 from threading import Thread
 
-_val=open("request", "rb").read()
+#_val=open("request", "rb").read()
 
 import os
 class HttpSocket(SocketWrapper):
@@ -137,8 +137,6 @@ class HTTPServer(ServerSocket):
         res=HTTPResponse(200, )
         x=time.time()*1000
         self.handlerequest(req, res)
-        soc._socket.shutdown(socket.SHUT_RD)
-        print((time.time()*1000-x),"ms ", soc._socket.fileno())
         soc.sendResponse(res)
         #soc._socket.send(_val)
         soc.close()
