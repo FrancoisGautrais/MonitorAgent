@@ -3,6 +3,10 @@ from conf import  Conf
 import json
 import os
 
+
+"""
+    Gère les données des clients (agent) et authorisation des admins
+"""
 class AppData:
 
     def __init__(self, js=None):
@@ -14,6 +18,9 @@ class AppData:
             }
         }
 
+    """
+        Connexion d'un client (agent) 
+    """
     def connect(self, info):
         if info["uuid"] in self._clients:
             return self._clients[info["uuid"]]
@@ -24,20 +31,35 @@ class AppData:
         self.save(False)
         return c
 
+    """
+        Ajout d'un fichier (afin de le mettre au téléchargement)
+    """
     def add_file(self, id, name, client):
         self._files[id]={"filename" : name, "client" : client}
         self.save(False)
 
+    """
+        Vérifie si un fichier est disponible
+    """
     def has_file(self, id):
         return id in self._files
 
+    """
+        Récupère les méta information d'un fichier  mis à disposition au téléchargement
+    """
     def get_file_info(self, id):
         return self._files[id]
 
+    """
+        Supprime un fichier disponible au téléchargement
+    """
     def remove_file(self, id):
         del self._files[id]
         self.save(False)
 
+    """
+        Vérifie si un client est enregistré
+    """
     def has(self, id):
         return id in self._clients
 
@@ -47,21 +69,33 @@ class AppData:
     def __getitem__(self, id):
         return self._clients[id]
 
+    """
+        Vérifie l'authentification d'un admin
+    """
     def auth(self, login, password):
         return (login in self._admin) and (self._admin[login]["password"]==password)
 
+    """
+        Supprime un client (agent)
+    """
     def remove_client(self, id):
         path=Conf.savedir(id)
         if os.path.isfile(path): os.remove(path)
         del self._clients[id]
 
-
+    """
+        Recherche une réponse à une commande
+    """
     def find_response(self, id):
         for c in self._clients:
             x=c.find_response(id)
             if x: return x
         return None
 
+
+    """
+        Supprime la sauvegarde
+    """
     @staticmethod
     def remove_save():
         path=Conf.savedir("")
@@ -71,7 +105,9 @@ class AppData:
 
 
 
-
+    """
+        Charge les données en revoie un objet initialisé
+    """
     @staticmethod
     def load():
         path=Conf.savedir("server.js")
@@ -87,7 +123,9 @@ class AppData:
             return AppData(js=content)
         return AppData()
 
-
+    """
+        Sauvegarde les données
+    """
     def save(self, all=True):
         out={}
         arr=[]

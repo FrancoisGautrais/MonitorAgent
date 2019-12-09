@@ -33,7 +33,9 @@ class ResultQueue:
 
 ResultQueue.SIZE=8
 
-
+"""
+    Représente un Client (agent)
+"""
 class Client:
 
     def __init__(self, info=None, js=None):
@@ -54,6 +56,9 @@ class Client:
         self.id=str(info["uuid"])
         self.info=info
 
+    """
+        Renvoie les données en format JSON
+    """
     def json(self):
         x={}
         self._lock.acquire()
@@ -72,12 +77,19 @@ class Client:
         self._lock.release()
         return x
 
+    """
+        Sauvegarde les données
+    """
     def save(self):
         path=Conf.savedir(self.id+".json")
         jsdata=json.dumps(self.json())
         with open(path, "w") as f:
             f.write(jsdata)
 
+
+    """
+        Charge un client depuis son id
+    """
     @staticmethod
     def load(id):
         path=Conf.savedir(id+".json")
@@ -86,19 +98,27 @@ class Client:
             content=f.read()
         return Client(js=json.loads(content))
 
+    """
+        Cherche une réponse depuis un id
+    """
     def find_response(self, id):
         self._lock.acquire()
         x=self.responseque.find(id)
         self._lock.release()
         return x
 
+    """
+        Vérifie si une commande est présente (depuis son id)
+    """
     def has_command(self, id):
         self._lock.acquire()
         x=self.queue.has(id) or (id in self.pending) or self.find_response(id)
         self._lock.release()
         return x
 
-
+    """
+        Retourne les données à insérer dans les pages html
+    """
     def get_moustache_data(self):
         arr=[]
         self._lock.acquire()
@@ -113,10 +133,17 @@ class Client:
         self._lock.release()
         return x
 
+    """
+        Envoie (ajoute à la file d'attente) une commande
+    """
     def send(self, cmd : Command):
         self.queue.enqueue(cmd)
         self.save()
 
+
+    """
+        Met à jour le status (de connexion) du client
+    """
     def update_status(self):
         self._lock.acquire()
         if self.status==Client.STATUS_WAITING:
@@ -125,6 +152,9 @@ class Client:
         self._lock.release()
         return self.status
 
+    """
+        Réponse à une commande
+    """
     def result(self, resp):
         self._lock.acquire()
         id=resp["id"]
@@ -142,12 +172,12 @@ class Client:
             self._lock.release()
             return False
 
-
+    """
+        Fonction qui permet d'attendre (blocking=true) la prochaine commande
+    """
     def wait_fo_command(self, blocking=True):
         self.last_request=time.time()
         self.status=Client.STATUS_CONNECTED
-
-
 
         cmd = self.queue.dequeue(blocking)
         if cmd:
