@@ -9,7 +9,6 @@ class CommandQueue:
         self.queue=[]
         if js:
             queue=js
-            print(js)
             for cmd in queue:
                 self.queue.append(Command(js=queue[cmd]))
         self._lock=Lock()
@@ -30,10 +29,7 @@ class CommandQueue:
 
     def dequeue(self, blocking=True):
         if blocking:
-            #self._lock.acquire()
-            print("locked")
             while self.isempty(): self._lock.acquire()
-            print("unlocked")
             if self._lock.locked(): self._lock.release()
 
             return self.queue.pop(0)

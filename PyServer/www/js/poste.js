@@ -77,6 +77,9 @@ function send_sync(cmd, args=[])
         },
         target: $("#id").text()
       }),
+      headers: {
+        "Content-Type" : "application/json"
+      },
       async: false,
       dataType: "json"
     });
@@ -96,6 +99,9 @@ function on_send()
         cmd: cmd,
         target: $("#id").text()
       }),
+      headers: {
+        "Content-Type" : "application/json"
+      },
       success: on_success,
       error: on_error,
       dataType: "json"

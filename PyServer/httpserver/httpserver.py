@@ -41,7 +41,6 @@ class HTTPServer(ServerSocket):
         while True:
             x=super().accept()
             req = HTTPRequest(x)
-            print(req.method)
             _start_thread( HTTPServer._handlerequest, self, req)
 
     def _handlerequest(self, req : HTTPRequest):
@@ -50,8 +49,8 @@ class HTTPServer(ServerSocket):
         x=time.time()*1000
         self.handlerequest(req, res)
 
-        print(" <------- ", req.path)
         res.write(req.get_socket())
+        req.get_socket().close()
 
     def handlerequest(self, req, res):
         pass

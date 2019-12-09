@@ -19,33 +19,33 @@ class Lexer:
 
         return self._c()
 
-    def _isSep(self, c=None):
+    def _is_sep(self, c=None):
         if c==None:
             c=self._c()
         return c in " \t\r\n"
 
-    def hasNext(self):
+    def has_next(self):
         return self._i!=len(self._text)-1 and len(self._text)>0
 
     def peak(self): return self._current
 
     def next(self):
         self._current=""
-        if not self.hasNext(): return None
-        while self._isSep(): self._nc()
+        if not self.has_next(): return None
+        while self._is_sep(): self._nc()
 
         if self._c()=="\'" or self._c()=='"':
             x=self._c()
             self._current=""
             self._nc()
-            while self.hasNext() and (self._c()!=x or self._current[-1]=="\\"):
+            while self.has_next() and (self._c()!=x or self._current[-1]=="\\"):
                 self._current+=self._c()
                 self._nc()
             return self._current
 
         while True:
-            if (not self.hasNext()) or self._isSep():
-                if not self.hasNext() and not self._isSep(): self._current+=self._text[self._i]
+            if (not self.has_next()) or self._is_sep():
+                if not self.has_next() and not self._is_sep(): self._current+=self._text[self._i]
                 return self._current
             self._current+=self._c()
             self._nc()
@@ -59,7 +59,6 @@ class Command:
             self.cmd=cmd
             self.args=args
         else:
-            print(js)
             self.id = js["id"]
             self.cmd = js["cmd"]
             self.args = js["args"]
@@ -85,7 +84,7 @@ class Command:
     def print(title, msg): return Command("print", (title, msg))
 
     @staticmethod
-    def fromText(txt):
+    def from_text(txt):
         l = Lexer(txt)
         cmd = l.next()
         args = []
@@ -94,7 +93,7 @@ class Command:
         return Command(cmd,args)
 
     @staticmethod
-    def fromJs(js):
+    def from_js(js):
         return Command(js["cmd"], js["args"])
 
     def start(self, server):

@@ -60,26 +60,26 @@ class AppServer(RESTServer):
         self.route("POST", "/admin/server/command", AppServer.admin_on_server_command, self)
 
         self.route(["GET", "POST"], MOUSTACHES_FILES, AppServer.admin_moustache, self)
-        self.static("/admin", "www", authcb=Callback(AppServer.isAuthorized, self),
-                    needauthcb=Callback(AppServer.needAuth, self))
+        self.static("/admin", "www", authcb=Callback(AppServer.is_authorized, self),
+                    needauthcb=Callback(AppServer.need_auth, self))
 
     def clients(self, id=None):
         return self._clients[id] if id else self._clients
 
-    def removeClient(self, id):
+    def remove_client(self, id):
         for k in self._connected:
             if self._connected[k].id==id:
                 del self._connected[id]
-                self._clients.removeClient(id)
+                self._clients.remove_client(id)
                 return True
         return False
 
-    def needAuth(self, req, res):
+    def need_auth(self, req, res):
         for k in ALLOWED:
             if req.path.find(k)>=0: return False
         return True
 
-    def isAuthorized(self, req, res):
+    def is_authorized(self, req, res):
         if not "session-id" in req.cookies:
             res.temporary_redirect("/admin/login.html")
             return False
@@ -93,7 +93,7 @@ class AppServer(RESTServer):
 
         return True
 
-    def getClient(self, req : HTTPRequest, res : HTTPResponse):
+    def get_client(self, req : HTTPRequest, res : HTTPResponse):
         if not req.header("x-session-id"):
             res.bad_request(errors.ERROR_HTTP, "Le header 'x-seesion-id' n'est pas transmis", [])
             return None
@@ -116,14 +116,14 @@ class AppServer(RESTServer):
         res.ok(errors.OK, "OK", None)
 
     def on_poll(self, req: HTTPRequest, res: HTTPResponse):
-        c=self.getClient(req, res)
+        c=self.get_client(req, res)
         if not c: return
         cmd=c.wait_fo_command(False)
         c.status = Client.STATUS_WAITING
         res.ok(errors.OK, "OK", cmd.json())
 
     def on_wait(self, req : HTTPRequest, res : HTTPResponse):
-        c=self.getClient(req, res)
+        c=self.get_client(req, res)
         if not c: return
         cmd=c.wait_fo_command()
         c.status = Client.STATUS_WAITING
@@ -131,10 +131,10 @@ class AppServer(RESTServer):
 
 
     def on_result(self, req : HTTPRequest, res : HTTPResponse):
-        c=self.getClient(req, res)
+        c=self.get_client(req, res)
         if not c: return
 
-        js=req.json()
+        js=req.body_json()
 
         ret = c.result(js)
         if ret:
@@ -168,14 +168,14 @@ class AppServer(RESTServer):
         del self._admins[id]
 
     def admin_on_server_command(self,req : HTTPRequest, res : HTTPResponse):
-        if not self.isAuthorized(req, res): return
-        data = json.loads(req.data)
-        cmd=Command.fromText(data["cmd"])
+        if not self.is_authorized(req, res): return
+        data = req.body_json()
+        cmd=Command.from_text(data["cmd"])
         out=cmd.start(self).json()
         res.ok(errors.OK, "OK", out)
 
     def _on_command(self, cmd, req : HTTPRequest, res : HTTPResponse):
-        data = json.loads(req.data)
+        data = req.body_json()
         id = data["target"]
         sync = data["sync"]
         if not id in self._clients._clients:
@@ -184,32 +184,31 @@ class AppServer(RESTServer):
         c = self._clients._clients[id]
         c.send(cmd)
         if sync:
-            r = c.findResponse(cmd.id)
+            r = c.find_response(cmd.id)
             while not r:
                 time.sleep(0.01)
-                r = c.findResponse(cmd.id)
+                r = c.find_response(cmd.id)
             res.ok(errors.OK, "OK", r)
         else:
             res.ok(errors.OK, "OK", CommandReturn(errors.OK, "").json())
-        print(cmd.json())
 
     def admin_on_command_texte(self, req: HTTPRequest, res: HTTPResponse):
-        if not self.isAuthorized(req, res): return
-        data = json.loads(req.data)
-        cmd = Command.fromText(data["cmd"])
+        if not self.is_authorized(req, res): return
+        data = req.body_json()
+        cmd = Command.from_text(data["cmd"])
         self._on_command(cmd, req, res)
 
     def admin_on_command(self, req: HTTPRequest, res: HTTPResponse):
-        if not self.isAuthorized(req, res): return
-        data = json.loads(req.data)
-        cmd = Command.fromJs(data["cmd"])
+        if not self.is_authorized(req, res): return
+        data = req.body_json()
+        cmd = Command.from_js(data["cmd"])
         self._on_command(cmd, req, res)
 
-    def getMoustacheData(self):
+    def get_moustache_data(self):
         out={}
         arr=[]
         for k in self._clients:
-            arr.append(self._clients[k].getMoustacheData())
+            arr.append(self._clients[k].get_moustache_data())
         out["clients"]=arr
         out["clientscount"]=len(out)
         return out
@@ -222,23 +221,23 @@ class AppServer(RESTServer):
                 needAuth=False
                 break
         if needAuth:
-            if not self.isAuthorized(req, res): return
+            if not self.is_authorized(req, res): return
 
         path=os.path.abspath("www/"+req.path[7:])
-        data=self.getMoustacheData()
+        data=self.get_moustache_data()
         if req.path in MOUSTACHE_CLIENT_DATA:
-            post=req.getPostParams()
+            post=req.body_json()
             if not "id" in post:
                 return res.bad_request(errors.ERROR_HTTP, "Le champs id n'est pas fourni (post)", None)
             if not post["id"] in self._clients._clients:
                 return res.bad_request(errors.ID_NOT_FOUND, "L'id "+str(post["id"])+" est incorrecte", None)
-            data=self._clients._clients[post["id"]].getMoustacheData()
+            data=self._clients._clients[post["id"]].get_moustache_data()
         res.end(html_template(path, data))
 
 
 
     def on_get_result(self, req : HTTPRequest, res : HTTPResponse):
-        if not self.isAuthorized(req, res): return
+        if not self.is_authorized(req, res): return
         cid=req.params["clientid"]
         cmdid=req.params["cmdid"]
         if not self._clients.has(cid):
@@ -246,13 +245,13 @@ class AppServer(RESTServer):
 
         client=self._clients[cid]
 
-        if not client.hasCommand(cmdid):
+        if not client.has_command(cmdid):
             return res.not_found(errors.ID_NOT_FOUND, "Command not found", None)
 
-        r=client.findResponse(cmdid)
+        r=client.find_response(cmdid)
         while not r:
             time.sleep(0.01)
-            client.findResponse(cmdid)
+            client.find_response(cmdid)
 
         res.ok(errors.OK, "OK", r)
 
@@ -260,22 +259,22 @@ class AppServer(RESTServer):
     def on_get_file(self, req : HTTPRequest, res : HTTPResponse):
         id=req.params["id"]
         path="download/"+id
-        if not self._clients.hasFile(id):
+        if not self._clients.has_file(id):
             return res.not_found(errors.FILE_NOT_FOUND, "Not found", None)
 
-        res.header("Content-Disposition", 'attachment; filename="'+self._clients.getFileInfo(id)["filename"]+'"')
+        res.header("Content-Disposition", 'attachment; filename="'+self._clients.get_file_info(id)["filename"]+'"')
         res.serve_file(path)
         os.remove(path)
-        self._clients.removeFile(id)
+        self._clients.remove_file(id)
 
     def on_put_file(self, req : HTTPRequest, res : HTTPResponse):
-        c=self.getClient(req, res)
+        c=self.get_client(req, res)
         id=str(uuid.uuid4())
         path = "download/" + id
 
         with open(path, "wb") as f:
             f.write(req.data)
-            self._clients.addFile(id, req.header("x-filename"), c.id)
+            self._clients.add_file(id, req.header("x-filename"), c.id)
             return res.ok(errors.OK, "OK", id)
         return res.unauthorized(errors.ERROR_HTTP, "", "Unknown error")
 

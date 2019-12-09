@@ -24,17 +24,17 @@ class AppData:
         self.save(False)
         return c
 
-    def addFile(self, id, name, client):
+    def add_file(self, id, name, client):
         self._files[id]={"filename" : name, "client" : client}
         self.save(False)
 
-    def hasFile(self, id):
+    def has_file(self, id):
         return id in self._files
 
-    def getFileInfo(self, id):
+    def get_file_info(self, id):
         return self._files[id]
 
-    def removeFile(self, id):
+    def remove_file(self, id):
         del self._files[id]
         self.save(False)
 
@@ -50,20 +50,20 @@ class AppData:
     def auth(self, login, password):
         return (login in self._admin) and (self._admin[login]["password"]==password)
 
-    def removeClient(self, id):
+    def remove_client(self, id):
         path=Conf.savedir(id)
         if os.path.isfile(path): os.remove(path)
         del self._clients[id]
 
 
-    def findResponse(self, id):
+    def find_response(self, id):
         for c in self._clients:
-            x=c.findResponse(id)
+            x=c.find_response(id)
             if x: return x
         return None
 
     @staticmethod
-    def removeSave():
+    def remove_save():
         path=Conf.savedir("")
         for p in os.listdir(path):
 

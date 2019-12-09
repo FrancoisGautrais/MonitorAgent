@@ -81,7 +81,7 @@ class _HTTP:
     def body_type(self):
         return self._body_type
 
-    def content_length(self, n=-1):
+    def content_length(self, n:int=-1 ):
         x=self.header("Content-Length")
         return x if x else 0
 
@@ -129,16 +129,16 @@ class HTTPRequest(_HTTP):
     def get_socket(self):
         return self._socket
 
-    def header(self, key):
+    def header(self, key : str):
         if key in self._headers:
             return self._headers[key]
         return None
 
     def parse(self):
-        self.parse_head()
-        self.parse_body()
+        self._parse_head()
+        self._parse_body()
 
-    def parse_head(self):
+    def _parse_head(self):
         #parse 1st line if it is not done
         if not self._head_line_parsed :
             self._parse_command_line()
@@ -151,7 +151,7 @@ class HTTPRequest(_HTTP):
             self._set_header(key, val)
             line=self._socket.readline()[:-1]
 
-    def parse_body(self):
+    def _parse_body(self):
         l=self.content_length()
         if not l:
             self._body_type=BODY_EMPTY
@@ -182,7 +182,7 @@ class HTTPRequest(_HTTP):
 
 
 
-    def _set_header(self, key, val):
+    def _set_header(self, key : str, val):
         if val and key.lower()=="cookie":
             clist = val.split(";")
             for x in clist:
@@ -221,7 +221,7 @@ class HTTPResponse(_HTTP):
         self.msg=STR_HTTP_ERROR[code]
 
 
-    def header(self, key, val):
+    def header(self, key : str, val):
         self._headers[key]=val
 
     def end(self, data):
@@ -239,7 +239,7 @@ class HTTPResponse(_HTTP):
 
 
 
-    def serve_file(self, path, urlReq=None):
+    def serve_file(self, path : str, urlReq=None):
 
         fd=None
         try:
@@ -247,7 +247,7 @@ class HTTPResponse(_HTTP):
         except Exception as err:
             self.code = HTTP_NOT_FOUND
             self.msg = STR_HTTP_ERROR[HTTP_NOT_FOUND]
-            self.contentType("text/plain")
+            self.content_type("text/plain")
             if urlReq:
                 self.end(str(urlReq)+" not found")
             else:
@@ -257,29 +257,28 @@ class HTTPResponse(_HTTP):
         #self._isStreaming=True
         self.content_type(mime(path))
         self.header("Content-Length", str(os.stat(path).st_size))
-        print("Serving file : "+path)
         self.end(open(path, "rb").read())
         #self.end(open(path, "rb"))
 
-    def _setJsonResponse(self, httpcode, code, msg, js):
+    def _set_json_response(self, httpcode : int, code : int , msg : str, js):
         self.header("Content-Type", "application/json")
         self.code = httpcode
         self.msg = STR_HTTP_ERROR[httpcode]
         self.end(bytes(json.dumps({"code": code, "message": msg, "data": js}), "utf8"))
 
-    def ok(self, code, msg, js):
-        self._setJsonResponse(HTTP_OK, code, msg, js)
+    def ok(self, code : int, msg : str, js):
+        self._set_json_response(HTTP_OK, code, msg, js)
 
-    def unauthorized(self, code, msg, js):
-        self._setJsonResponse(HTTP_UNAUTHORIZED, code, msg, js)
+    def unauthorized(self, code : int, msg : str, js):
+        self._set_json_response(HTTP_UNAUTHORIZED, code, msg, js)
 
-    def bad_request(self, code, msg, js):
-        self._setJsonResponse(HTTP_BAD_REQUEST, code, msg, js)
+    def bad_request(self, code : int, msg : str, js):
+        self._set_json_response(HTTP_BAD_REQUEST, code, msg, js)
 
-    def not_found(self, code, msg, js):
-        self._setJsonResponse(HTTP_NOT_FOUND, code, msg, js)
+    def not_found(self, code : int, msg : str, js):
+        self._set_json_response(HTTP_NOT_FOUND, code, msg, js)
 
-    def temporary_redirect(self, url):
+    def temporary_redirect(self, url : str):
         self.code = HTTP_TEMPORARY_REDIRECT
         self.msg = STR_HTTP_ERROR[HTTP_TEMPORARY_REDIRECT]
         self.header("Location", url)
@@ -303,76 +302,4 @@ class HTTPResponse(_HTTP):
         soc.send(fromutf8("\r\n"))
 
         soc.send(out)
-
-"""
-class HTTPResponse(_HTTP):
-
-    def __init__(self, code=200, jsondata=None):
-        _HTTP.__init__(self)
-        self.version = "HTTP/1.1"
-        self.code=code
-        self.msg=STR_HTTP_ERROR[code]
-        self._isStreaming=False
-
-
-    def _setJsonResponse(self, httpcode, code, msg, js):
-        self.addHeader("Content-Type", "application/json")
-        self.code=httpcode
-        self.msg=STR_HTTP_ERROR[httpcode]
-        self.data=bytes(json.dumps({ "code": code, "message": msg, "data": js }), "utf8")
-
-    def ok(self, code, msg, js): self._setJsonResponse(HTTP_OK, code, msg, js)
-    def unauthorized(self, code, msg, js): self._setJsonResponse(HTTP_UNAUTHORIZED, code, msg, js)
-    def bad_request(self, code, msg, js): self._setJsonResponse(HTTP_BAD_REQUEST, code, msg, js)
-    def not_found(self, code, msg, js): self._setJsonResponse(HTTP_NOT_FOUND, code, msg, js)
-    def temporary_redirect(self, url):
-        self.code=HTTP_TEMPORARY_REDIRECT
-        self.msg=STR_HTTP_ERROR[HTTP_TEMPORARY_REDIRECT]
-        self.headers["Location"]=url
-        self.end("")
-
-
-
-    def getheadersbytes(self):
-        s = fromutf8(self.version + " " + str(self.code) + " " + self.msg + "\r\n")
-        for k in self.headers:
-            s += fromutf8(k + ": " + self.headers[k] + "\r\n")
-        s += fromutf8("\r\n")
-        return s
-
-    def isStreaming(self):
-        return self._isStreaming
-
-    def serveFile(self, path, urlReq=None):
-
-        fd=None
-        try:
-            fd=open(path, "rb")
-        except Exception as err:
-            self.code = HTTP_NOT_FOUND
-            self.msg = STR_HTTP_ERROR[HTTP_NOT_FOUND]
-            self.contentType("text/plain")
-            if urlReq:
-                self.end(str(urlReq)+" not found")
-            else:
-                self.end("File not found : "+str(err))
-            return
-
-        #self._isStreaming=True
-        self.contentType(mime(path))
-        self.headers["Content-Length"] = str(os.stat(path).st_size)
-        print("Serving file : "+path)
-        self.end(open(path, "rb").read())
-        #self.end(open(path, "rb"))
-
-    def getbodybytes(self):
-        return self.data
-
-
-
-
-    def end(self, s):
-        if isinstance(s, str): s=fromutf8(s)
-        self.data=s
-"""
 

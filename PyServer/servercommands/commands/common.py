@@ -17,7 +17,7 @@ def cmd_save(server : AppServer, args):
         elif args[0]=="server":
             server.clients().save(False)
         elif args[0]=="remove":
-            AppData.removeSave()
+            AppData.remove_save()
         elif args[0]=="help":
             return CommandReturn(0, "save [server|all|remove]")
     return CommandReturn(0, "")
@@ -45,6 +45,6 @@ def cmd_client(self : AppServer, args):
 
     if args[1] == "info": return CommandReturn(errors.OK, _client_info(c))
     elif args[1] == "remove":
-        self.removeClient(id)
+        self.remove_client(id)
         return CommandReturn(errors.OK, id)
 

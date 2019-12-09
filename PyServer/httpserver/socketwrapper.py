@@ -62,7 +62,6 @@ class ServerSocket(SocketWrapper):
     def bind(self, ip, port):
         self._ip=ip
         self._port=port
-        print("Listening on", ip, "at port", port,"...")
         self._socket.bind((ip, port))
         self._socket.listen(50)
 

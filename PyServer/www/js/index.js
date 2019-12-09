@@ -46,6 +46,9 @@ function on_send()
       data: JSON.stringify({
         cmd: cmd
       }),
+      headers: {
+        "Content-Type" : "application/json"
+      },
       success: on_success,
       error: on_error,
       dataType: "json"

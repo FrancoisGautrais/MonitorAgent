@@ -16,7 +16,7 @@ class ResultQueue:
         if (id in self._dict): return self._dict[id]
         return None
 
-    def addResult(self, res):
+    def add_result(self, res):
         if len(self._queue)==ResultQueue.SIZE:
             del self._dict[self._queue.pop(0)]
         self._queue.append(res["id"])
@@ -39,7 +39,7 @@ class Client:
     def __init__(self, info=None, js=None):
         self._lock=Lock()
         self.status=Client.STATUS_DISCONNECTED
-        self.lastRequest=0
+        self.last_request=0
         self.queue=CommandQueue()
         self.pending={}
         self.responseque=ResultQueue()
@@ -63,7 +63,7 @@ class Client:
             pend[cmd]=self.pending[cmd].json()
 
         x={
-            "lastRequest" : self.lastRequest,
+            "lastRequest" : self.last_request,
             "info" : self.info,
             "pending" : pend,
             "queue" : self.queue.json(),
@@ -86,20 +86,20 @@ class Client:
             content=f.read()
         return Client(js=json.loads(content))
 
-    def findResponse(self, id):
+    def find_response(self, id):
         self._lock.acquire()
         x=self.responseque.find(id)
         self._lock.release()
         return x
 
-    def hasCommand(self, id):
+    def has_command(self, id):
         self._lock.acquire()
-        x=self.queue.has(id) or (id in self.pending) or self.findResponse(id)
+        x=self.queue.has(id) or (id in self.pending) or self.find_response(id)
         self._lock.release()
         return x
 
 
-    def getMoustacheData(self):
+    def get_moustache_data(self):
         arr=[]
         self._lock.acquire()
         for k in self.info:
@@ -117,10 +117,10 @@ class Client:
         self.queue.enqueue(cmd)
         self.save()
 
-    def updateStatus(self):
+    def update_status(self):
         self._lock.acquire()
         if self.status==Client.STATUS_WAITING:
-            if time.time()-self.lastRequest>Client.TIME_TO_BE_DISCONNECTED:
+            if time.time()-self.last_request>Client.TIME_TO_BE_DISCONNECTED:
                 self.status=Client.STATUS_DISCONNECTED
         self._lock.release()
         return self.status
@@ -132,7 +132,7 @@ class Client:
             d=self.pending[id]
             resp["cmd"]=self.pending[id].json()
             d.response(resp)
-            self.responseque.addResult(resp)
+            self.responseque.add_result(resp)
             del self.pending[id]
             self._lock.release()
             self.save()
@@ -144,7 +144,7 @@ class Client:
 
 
     def wait_fo_command(self, blocking=True):
-        self.lastRequest=time.time()
+        self.last_request=time.time()
         self.status=Client.STATUS_CONNECTED
 
 
@@ -152,7 +152,7 @@ class Client:
         cmd = self.queue.dequeue(blocking)
         if cmd:
             self._lock.acquire()
-            self.lastRequest=time.time()
+            self.last_request=time.time()
             self.pending[cmd.id]=cmd
             self._lock.release()
             self.save()
