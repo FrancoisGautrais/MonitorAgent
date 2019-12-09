@@ -140,7 +140,6 @@ class AppServer(RESTServer):
         c.save()
         res.ok(errors.OK, "OK", None)
 
-
     """
         Handler non bloquant de demande de commande
     """
@@ -160,7 +159,6 @@ class AppServer(RESTServer):
         cmd=c.wait_fo_command()
         c.status = Client.STATUS_WAITING
         res.ok(errors.OK, "OK", cmd.json())
-
 
     """
         Handler pour gérer les retours des commandes
@@ -341,5 +339,3 @@ class AppServer(RESTServer):
             self._clients.add_file(id, req.header("x-filename"), c.id)
             return res.ok(errors.OK, "OK", id)
         return res.unauthorized(errors.ERROR_HTTP, "", "Unknown error")
-
-

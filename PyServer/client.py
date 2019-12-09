@@ -49,9 +49,16 @@ class Client:
         if js:
             info=js["info"]
             self.lastRequest=js["lastRequest"]
-            self.pending=js["pending"]
             self.queue=CommandQueue(js["queue"])
+            """
+            self.pending=js["pending"]
+            pend=js["pending"]
+            for id in pend:
+                cmd=pend[id]
+                self.pending[id]=Command(js=cmd)
+            self.pending={}
             self.responseque=ResultQueue(js["responseque"])
+            """
 
         self.id=str(info["uuid"])
         self.info=info
@@ -96,7 +103,13 @@ class Client:
         content=""
         with open(path) as f:
             content=f.read()
-        return Client(js=json.loads(content))
+
+        try:
+            data=json.loads(content)
+            return Client(js=data)
+        except Exception as err:
+            print("Erreur: Impossible de charger le client '"+str(id)+"' : "+str(err))
+            return None
 
     """
         Cherche une réponse depuis un id
@@ -139,7 +152,6 @@ class Client:
     def send(self, cmd : Command):
         self.queue.enqueue(cmd)
         self.save()
-
 
     """
         Met à jour le status (de connexion) du client
@@ -187,8 +199,6 @@ class Client:
             self._lock.release()
             self.save()
         return cmd
-
-
 
 Client.STATUS_CONNECTED="CONNECTED"
 Client.STATUS_WAITING="WAITING"

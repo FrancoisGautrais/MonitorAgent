@@ -57,6 +57,9 @@ function send(cmd, args)
         },
         target: $("#id").text()
       }),
+      headers: {
+        "Content-Type" : "application/json"
+      },
       success: on_success,
       error: on_error,
       dataType: "json"
