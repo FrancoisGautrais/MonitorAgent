@@ -3,7 +3,7 @@ import inspect
 import sys
 
 from agent import errors
-from conf import Globals
+from conf import Conf
 from importlib import import_module
 from inspect import getmembers, isfunction
 
@@ -21,7 +21,7 @@ class _CommandsLoader:
     def load(self):
         filename = inspect.getframeinfo(inspect.currentframe()).filename
         path = os.path.dirname(os.path.abspath(filename))
-        if Globals.isWindows():
+        if Conf.isWindows():
             path += "\\commands\\"
         else:
             path += "/commands/"

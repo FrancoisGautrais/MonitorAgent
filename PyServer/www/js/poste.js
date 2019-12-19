@@ -14,7 +14,6 @@ $(document).ready(function(){
 
 function appendToLog(s)
 {
-
     $("#log").html($("#log").html()+"<br>"+s.replaceAll("\n", "<br>"))
 }
 
@@ -179,6 +178,7 @@ function ff(n, d=2){
     for (var i=0; i<d; i++) mult*=10
     return Math.round(n*mult)/mult
 }
+
 mem=0
 cpus=0
 function cpu_th(id, cpu)

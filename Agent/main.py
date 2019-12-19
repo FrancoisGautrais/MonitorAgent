@@ -1,9 +1,12 @@
+
+import sys
+sys.path.insert(0, "../Common")
+
 import requests
-from conf import Globals
+from conf import Conf
 from remove import clean
 import time
 from agent.agent import Agent
-import sys
 import traceback
 
 
@@ -11,7 +14,7 @@ def doUpdate():
     r=None
     while r==None:
         try:
-            r  = requests.post("http://localhost:8080/connect", json=Globals.getAllversionInformation())
+            r  = requests.post("http://localhost:8080/connect", json=Conf.getAllversionInformation())
             print("A=", r.json())
         except Exception as err:
             r=None
@@ -20,7 +23,7 @@ def doUpdate():
 
 #doUpdate()
 
-print(Globals.getAllversionInformation())
+print(Conf.getAllversionInformation())
 client  = Agent("http://localhost:8080/")
 client.connect()
 while True:

@@ -1,6 +1,6 @@
 import time
 import asyncio
-from command import Command
+from command.command import Command
 
 from threading import Condition, Lock
 class CommandQueue:
@@ -10,7 +10,7 @@ class CommandQueue:
         if js:
             queue=js
             for cmd in queue:
-                self.queue.append(Command(js=cmd))
+                self.queue.append(Command.from_js(cmd))
         self._lock=Lock()
 
     def json(self):

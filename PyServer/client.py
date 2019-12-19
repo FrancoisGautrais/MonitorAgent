@@ -1,5 +1,5 @@
 from commandqueue import CommandQueue
-from command import Command
+from command.command import Command
 from threading import Lock
 import time
 import uuid
@@ -169,7 +169,7 @@ class Client:
         if id in self.pending:
             d=self.pending[id]
             resp["cmd"]=self.pending[id].json()
-            d.response(resp)
+            #d.response(resp)
             self.responseque.add_result(resp)
             del self.pending[id]
             self._lock.release()

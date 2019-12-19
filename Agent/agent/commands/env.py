@@ -2,8 +2,6 @@ import os
 from agent import  errors
 from agent.commandreturn import CommandReturn
 from agent.shell import Shell
-from conf import Globals
-from utils import execSystem
 
 
 def cmd_env(shell : Shell, args):

@@ -1,5 +1,4 @@
-
-from command import Command
+from command.command import Command
 import time
 import uuid
 from threading import Lock
@@ -17,7 +16,7 @@ class Task:
         self._repeat=0
         self._done=0
         self._task_type=Task.INTERVAL
-        self._cmd_ttl=0
+        self._cmd_ttd=0
 
     def json(self):
         return {
@@ -29,19 +28,19 @@ class Task:
             "repeat"    : self._repeat,
             "done"      : self._done,
             "type"      : self._task_type,
-            "cmd_ttl"      : self._cmd_ttl
+            "cmd_ttd"      : self._cmd_ttd
         }
 
     @staticmethod
     def from_json(js):
-        t=Task(js["clients"], Command(js=js["cmd"]))
+        t=Task(js["clients"], Command.from_js(js["cmd"]))
         t._id=js["id"]
         t._start_time=js["start_time"]
         t._interval=js["interval"]
         t._repeat=js["repeat"]
         t._done=js["done"]
         t._task_type=js["type"]
-        t._cmd_ttl=js["cmd_ttl"]
+        t._cmd_ttd=js["cmd_ttd"]
         return t
 
     def next_deadline(self):
@@ -60,8 +59,8 @@ class Task:
 
     def get_new_command(self):
         x=self._cmd.copy()
-        if x.ttl>0 and self._cmd_ttl>0:
-            x.ttl=time.time()+self._cmd_ttl
+        if x.ttd>0 and self._cmd_ttd>0:
+            x.ttd=time.time()+self._cmd_ttd
         return x
 
     @staticmethod

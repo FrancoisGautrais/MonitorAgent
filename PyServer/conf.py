@@ -30,6 +30,13 @@ class Conf:
     def is_windows():
         return Conf._conf._os.lower()=="windows"
 
+
+    @staticmethod
+    def is_agent(): return False
+
+    @staticmethod
+    def is_server(): return True
+
 Conf._conf=Conf._conf=Conf()
 
 def conf():

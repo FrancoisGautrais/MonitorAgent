@@ -1,3 +1,7 @@
+
+import sys
+sys.path.insert(0, "../Common")
+
 from httpserver import socketwrapper
 from httpserver.httprequest import HTTPResponse
 from httpserver.restserver import RESTServer

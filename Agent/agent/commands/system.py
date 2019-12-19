@@ -1,4 +1,4 @@
-from conf import Globals
+from conf import Conf
 import os
 from ..shell import Shell
 from utils import execSystem
@@ -8,13 +8,13 @@ import psutil
 
 
 def cmd_halt(shell, args):
-    if Globals.isWindows():
+    if Conf.isWindows():
         os.system("shutdown /s /t 0")
     else:
         os.system("halt")
 
 def cmd_reboot(shell, args):
-    if Globals.isWindows():
+    if Conf.isWindows():
         os.system("shutdown /r /t 0")
     else:
         os.system("reboot")
@@ -22,14 +22,14 @@ def cmd_reboot(shell, args):
 def cmd_passwd(shell, args):
     user=args["user"]
     password=args["password"]
-    if Globals.isWindows():
+    if Conf.isWindows():
         os.system("net user "+user+" "+password)
     else:
         os.system('echo -n "'+password+'\n'+password+'\n" | passwd '+user)
 
 
 def cmd_killall(self : Shell, args):
-    if Globals.isWindows():
+    if Conf.isWindows():
         return execSystem(["taskkill", "/F", "/IM", args[0], "/T"])
     else:
         return execSystem(["killall ", args[0]])

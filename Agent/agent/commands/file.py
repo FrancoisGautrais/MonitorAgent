@@ -2,7 +2,7 @@ import os
 from agent import  errors
 from agent.commandreturn import CommandReturn
 from agent.shell import Shell
-from conf import Globals
+from conf import Conf
 from utils import execSystem
 
 def absjoin(base, after):
@@ -11,7 +11,7 @@ def absjoin(base, after):
 def cmd_cd(shell : Shell, args):
     np=absjoin(shell.getPwd(), args[0])
     if os.path.isdir(np):
-        if Globals.isWindows() and np[-1]==":": np+="\\"
+        if Conf.isWindows() and np[-1]==":": np+="\\"
         shell.setPwd(np)
         return CommandReturn(errors.OK)
     elif os.path.exists(np):
@@ -52,14 +52,14 @@ def cmd_mkdir(shell : Shell, args):
 
 
 def cmd_cp(shell: Shell, args):
-    if Globals.isWindows():
+    if Conf.isWindows():
         return execSystem(["copy"] + args)
     else:
         return execSystem(["cp"] + args)
 
 
 def cmd_mv(shell: Shell, args):
-    if Globals.isWindows():
+    if Conf.isWindows():
         return execSystem(["move"] + args)
     else:
         return execSystem(["mv"] + args)

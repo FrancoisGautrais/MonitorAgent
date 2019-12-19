@@ -1,0 +1,29 @@
+
+<table class="responsive-table centered striped">
+    <thead>
+      <tr>
+          <th>Commande</th>
+          <th>Interval</th>
+          <th>Cpu</th>
+          <th>Mémoire</th>
+          <th>Lancment</th>
+          <th>Action</th>
+      </tr>
+    </thead>
+
+    <tbody id="sched_body">
+    </tbody>
+
+</table>
+
+<script>
+     proc_body=$("#proc_body")
+     $('.collapsible').collapsible();
+     procrefresh()
+     $("#proc_filter").on('input',function(){
+        proc_filter($("#proc_filter").val())
+     })
+     $("#proc_filter").change(function(){
+        proc_filter($("#proc_filter").val())
+     })
+ </script>

@@ -1,4 +1,4 @@
-from conf import Globals
+from conf import Conf
 import requests
 from agent import errors
 from .shell import Shell
@@ -9,7 +9,7 @@ class Agent:
     def __init__(self, server="http://localhost:8080/"):
         self._baseUrl=server
         self._id=None
-        self._info=Globals.getAllversionInformation()
+        self._info=Conf.getAllversionInformation()
         self._shell=Shell(self)
 
     def connect(self):

@@ -7,7 +7,7 @@ import errors
 import uuid
 from appdata import AppData
 import json
-from command import Command
+from command.command import Command
 from client import Client
 from httpserver.utils import Callback
 from servercommands.commandsloader import CommandReturn
