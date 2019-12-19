@@ -88,6 +88,31 @@ function send_sync(cmd, args=[])
     });
 }
 
+
+function send_async(cmd, args=[], succ, err)
+{
+    return $.ajax({
+      type: "POST",
+      url: "command",
+      data: JSON.stringify({
+        sync: true,
+        cmd: {
+            sync: true,
+            cmd: cmd,
+            args: args
+        },
+        target: $("#id").text()
+      }),
+      headers: {
+        "Content-Type" : "application/json"
+      },
+      dataType: "json",
+      success: succ,
+      error: err
+    });
+}
+
+
 function on_send()
 {
     cmd=$("#input_command").val()
@@ -189,30 +214,31 @@ function systemtabclick()
 
 function systemrefresh(force=false){
 
-    resp=send_sync("monitor")
-    js=resp.responseJSON.data.stdout
-    mem=js.memory
-    cpus=js.cpus
-    percent=ff((mem.total-mem.free)/mem.total*100, 2)
-    $("#totalmem").html( ff(mem.total/1024/1024/1024, 1) + " Go")
-    $("#usedmem").html( ff((mem.total-mem.free)/1024/1024/1024, 1)  + " Go")
-    $("#usedmempc").html( ff((mem.total-mem.free)/mem.total*100, 2) + " %")
-    $("#memprogress").css("width", ff((mem.active)/mem.total*100, 0)+"%")
-    $("#memprogress2").css("left", ff((mem.active)/mem.total*100, 0)+"%")
-    $("#memprogress2").css("width", ff(( (mem.total-mem.free)-mem.active)/mem.total*100, 0)+"%")
+    resp=send_async("monitor", [], function(resp){
+        js=resp.data.stdout
+        mem=js.memory
+        cpus=js.cpus
+        percent=ff((mem.total-mem.free)/mem.total*100, 2)
+        $("#totalmem").html( ff(mem.total/1024/1024/1024, 1) + " Go")
+        $("#usedmem").html( ff((mem.total-mem.free)/1024/1024/1024, 1)  + " Go")
+        $("#usedmempc").html( ff((mem.total-mem.free)/mem.total*100, 2) + " %")
+        $("#memprogress").css("width", ff((mem.active)/mem.total*100, 0)+"%")
+        $("#memprogress2").css("left", ff((mem.active)/mem.total*100, 0)+"%")
+        $("#memprogress2").css("width", ff(( (mem.total-mem.free)-mem.active)/mem.total*100, 0)+"%")
 
-    if(sys_body.children().length==0)
-    {
-        sys_body.append(cpu_th("Moyenne", js.cpus.global))
-        for (var i=0; i<cpus.count; i++)
-            sys_body.append(cpu_th(i, cpus[i]))
-    }else{
-        uppdate_cpu_th("Moyenne", js.cpus.global)
-        for (var i=0; i<cpus.count; i++)
-            uppdate_cpu_th(i, cpus[i])
-    }
-    if( force || $("#systemtab").css("display")!="none")
-        setTimeout(systemrefresh, 2000)
+        if(sys_body.children().length==0)
+        {
+            sys_body.append(cpu_th("Moyenne", js.cpus.global))
+            for (var i=0; i<cpus.count; i++)
+                sys_body.append(cpu_th(i, cpus[i]))
+        }else{
+            uppdate_cpu_th("Moyenne", js.cpus.global)
+            for (var i=0; i<cpus.count; i++)
+                uppdate_cpu_th(i, cpus[i])
+        }
+        if( force || $("#systemtab").css("display")!="none")
+            setTimeout(systemrefresh, 2000)
+    })
 }
 
 function proctabclick()
@@ -296,42 +322,42 @@ function proc_filter(f)
 
 function procrefresh(force=false){
     npids=[]
-    resp=send_sync("ps", ["small"])
-    //proc_body.empty()
-    js=resp.responseJSON.data.stdout
-    procnames=[]
+    resp=send_async("ps", ["small"], function(resp){
+        console.log(resp)
+        js=resp.data.stdout
+        procnames=[]
 
-    for(var i=0; i<js.length; i++)
-    {
-        proc=js[i]
-        x=process_th(proc)
-        npids.push(proc.pid)
-        procnames.push(proc.name)
-        if(x)
+        for(var i=0; i<js.length; i++)
         {
-            proc_body.append(x)
-        }
-    }
-
-    for(var i=0; i<pids.length; i++)
-    {
-        p=pids[i]
-        ok=true
-        for(var j=0; j<npids.length; j++)
-        {
-            if( npids[j]==p){
-                ok=false
-                break
+            proc=js[i]
+            x=process_th(proc)
+            npids.push(proc.pid)
+            procnames.push(proc.name)
+            if(x)
+            {
+                proc_body.append(x)
             }
         }
-        if (ok){
-            id="proc_th_"+p+"_"
-            $("#"+id).remove()
+
+        for(var i=0; i<pids.length; i++)
+        {
+            p=pids[i]
+            ok=true
+            for(var j=0; j<npids.length; j++)
+            {
+                if( npids[j]==p){
+                    ok=false
+                    break
+                }
+            }
+            if (ok){
+                id="proc_th_"+p+"_"
+                $("#"+id).remove()
+            }
         }
-    }
 
-    pids=npids
-    if( force || $("#proctab").css("display")!="none")
-        setTimeout(procrefresh, 5000)
-
+        pids=npids
+        if( force || $("#proctab").css("display")!="none")
+            setTimeout(procrefresh, 5000)
+    })
 }

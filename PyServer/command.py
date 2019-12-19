@@ -53,16 +53,17 @@ class Lexer:
 
 class Command:
 
-    def __init__(self, cmd=None, args=[], cb=Callback(), js=None):
+    def __init__(self, cmd=None, args=[], js=None):
         if not js:
             self.id=str(uuid.uuid4())
             self.cmd=cmd
             self.args=args
+            self.ttl=0
         else:
             self.id = js["id"]
             self.cmd = js["cmd"]
             self.args = js["args"]
-        self.callback=cb
+            self.ttl= js["ttl"] if ("ttl" in js) else 0
 
     def json(self):
         return {
@@ -71,8 +72,14 @@ class Command:
             "args": self.args
         }
 
+    def copy(self):
+        cmd=Command(js=self.json())
+        cmd.id=str(uuid.uuid4())
+        return cmd
+
+
     def response(self, resp):
-        self.callback.call((resp,) )
+        pass
 
     @staticmethod
     def halt(): return Command("halt")

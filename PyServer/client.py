@@ -28,9 +28,6 @@ class ResultQueue:
             "dict": self._dict
         }
 
-
-
-
 ResultQueue.SIZE=8
 
 """
@@ -93,7 +90,6 @@ class Client:
         with open(path, "w") as f:
             f.write(jsdata)
 
-
     """
         Charge un client depuis son id
     """
@@ -104,12 +100,12 @@ class Client:
         with open(path) as f:
             content=f.read()
 
-        try:
-            data=json.loads(content)
-            return Client(js=data)
-        except Exception as err:
-            print("Erreur: Impossible de charger le client '"+str(id)+"' : "+str(err))
-            return None
+        #try:
+        data=json.loads(content)
+        return Client(js=data)
+        #except Exception as err:
+        #    print("Erreur: Impossible de charger le client '"+str(id)+"' : "+str(err))
+        #    return None
 
     """
         Cherche une réponse depuis un id

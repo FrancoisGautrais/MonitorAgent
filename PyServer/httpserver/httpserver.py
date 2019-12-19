@@ -1,33 +1,11 @@
 from .socketwrapper import SocketWrapper, ServerSocket
 from .httprequest import HTTPResponse, HTTPRequest, testurl, HTTP_OK, STR_HTTP_ERROR, HTTP_NOT_FOUND
-from threading import Thread
-
-#_val=open("request", "rb").read()
+from .utils import Callback, start_thread
 
 import os
-
-
-
-class _ThreadWrapper(Thread):
-
-    def __init__(self, fct, obj, data=None):
-        Thread.__init__(self)
-        self.data=data
-        self.obj=obj
-        self.fct=fct
-
-    def run(self):
-        self.fct(self.obj, self.data)
-
-def _start_thread(fct, obj, data):
-    t=_ThreadWrapper(fct, obj, data)
-    t.start()
-    #fct(obj, data)
-
-    return t
 import time
 
-import socket
+
 class HTTPServer(ServerSocket):
 
     def __init__(self, ip="localhost"):
@@ -41,7 +19,7 @@ class HTTPServer(ServerSocket):
         while True:
             x=super().accept()
             req = HTTPRequest(x)
-            _start_thread( HTTPServer._handlerequest, self, req)
+            start_thread( Callback(HTTPServer._handlerequest, self, req))
 
     def _handlerequest(self, req : HTTPRequest):
         req.parse()

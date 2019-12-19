@@ -1,6 +1,7 @@
 
 import magic
 from threading import Lock
+from threading import Thread
 _mime_lock=None
 
 if not _mime_lock:
@@ -38,7 +39,7 @@ class Callback:
                 if x:
                     return self.fct(self.obj, *x)
                 else:
-                    return self.fct()
+                    return self.fct(self.obj)
         else:
             if data:
                 return self.fct(*data)
@@ -48,3 +49,19 @@ class Callback:
                     return self.fct(*x)
                 else:
                     return self.fct()
+
+
+class ThreadWrapper(Thread):
+
+    def __init__(self, cb : Callback):
+        Thread.__init__(self)
+        self.cb=cb
+
+    def run(self):
+        self.cb.call()
+
+
+def start_thread(cb : Callback):
+    t=ThreadWrapper(cb)
+    t.start()
+    return t

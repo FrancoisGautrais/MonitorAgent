@@ -11,7 +11,10 @@ from command import Command
 from client import Client
 from httpserver.utils import Callback
 from servercommands.commandsloader import CommandReturn
+from scheduler import Task, Scheduler
 import pystache
+
+
 
 def html_template(path, data):
     with open(path) as file:
@@ -50,6 +53,7 @@ class AppServer(RESTServer):
         self._connected={}
         self._admins={}
 
+        self._clients.get_scheduler().main_loop_in_thread()
 
         self.route("POST", "/connect", AppServer.on_connect, self)
         self.route("GET", "/poll", AppServer.on_poll, self)
@@ -72,7 +76,7 @@ class AppServer(RESTServer):
         Renvoie la liste des clients (si id=None), sinon le client d'id de 'id'
     """
     def clients(self, id=None):
-        return self._clients[id] if id else self._clients
+        return self._clients.clients()
 
     """
         Retire le client id

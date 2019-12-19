@@ -10,7 +10,7 @@ class CommandQueue:
         if js:
             queue=js
             for cmd in queue:
-                self.queue.append(Command(js=queue[cmd]))
+                self.queue.append(Command(js=cmd))
         self._lock=Lock()
 
     def json(self):

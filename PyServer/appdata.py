@@ -2,7 +2,7 @@ from client import Client
 from conf import  Conf
 import json
 import os
-
+from scheduler import Scheduler, Task
 
 """
     Gère les données des clients (agent) et authorisation des admins
@@ -17,6 +17,7 @@ class AppData:
                 "password": "password"
             }
         }
+        self._scheduler=Scheduler(self, js["scheduler"] if  js else None)
 
     """
         Connexion d'un client (agent) 
@@ -30,6 +31,10 @@ class AppData:
         c.save()
         self.save(False)
         return c
+
+    def get_scheduler(self):
+        return self._scheduler
+
 
     """
         Ajout d'un fichier (afin de le mettre au téléchargement)
@@ -84,6 +89,12 @@ class AppData:
         del self._clients[id]
 
     """
+        Renvoie la liste des clients (si id=None), sinon le client d'id de 'id'
+    """
+    def clients(self, id=None):
+        return self._clients[id] if id else self
+
+    """
         Recherche une réponse à une commande
     """
     def find_response(self, id):
@@ -91,7 +102,6 @@ class AppData:
             x=c.find_response(id)
             if x: return x
         return None
-
 
     """
         Supprime la sauvegarde
@@ -102,8 +112,6 @@ class AppData:
         for p in os.listdir(path):
 
             os.remove(Conf.savedir(p))
-
-
 
     """
         Charge les données en revoie un objet initialisé
@@ -143,6 +151,7 @@ class AppData:
         out["clients"] = arr
         out["files"] = tmp
         out["admin"] = self._admin
+        out["scheduler"] = self._scheduler.json()
 
         path=Conf.savedir("server.js")
         jsdata=json.dumps(out)
