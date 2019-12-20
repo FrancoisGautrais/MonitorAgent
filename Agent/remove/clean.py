@@ -1,4 +1,4 @@
-from conf import Globals
+from conf import Conf
 from os import walk
 import os
 
@@ -7,8 +7,8 @@ def readFilexClude(path, base=[]):
     current=base.copy()
     for line in open(path):
         line=line.rstrip("\n")
-        if os.path.isdir(line) and ((line[-1]!="\\") if Globals.isWindows() else (line[-1]!="/")):
-            line+="\\" if Globals.isWindows() else "/"
+        if os.path.isdir(line) and ((line[-1]!="\\") if Conf.isWindows() else (line[-1]!="/")):
+            line+="\\" if Conf.isWindows() else "/"
         current.append(line)
     return current
 
@@ -23,7 +23,7 @@ def comparDir(_a, _b):
         a=_a[:len(b)]
         b=_b+""
 
-    if Globals.isWindows():
+    if Conf.isWindows():
         return a.replace("/","\\").lower()==b.replace("/","\\").lower()
     return a.replace("/","\\")==b.replace("/","\\")
 
@@ -42,7 +42,7 @@ def expandDirs(dirs):
             for p in os.listdir(x):
                 p=os.path.join(x,p)
                 if os.path.isdir(p):
-                    if Globals.isWindows(): p+="\\"
+                    if Conf.isWindows(): p+="\\"
                     else: p+="/"
                 l.append(p)
     return l
@@ -62,8 +62,8 @@ def excludeDirs(base, exList):
 
 
 
-exclude=readFilexClude(Globals.conf("exclude"))
-include=expandDirs(readFilexClude(Globals.conf("include")))
+exclude=readFilexClude(Conf.conf("exclude"))
+include=expandDirs(readFilexClude(Conf.conf("include")))
 fileToDelete=excludeDirs(include, exclude)
 
 

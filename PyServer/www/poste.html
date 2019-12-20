@@ -1,0 +1,148 @@
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <link href="css/demo.css" rel="stylesheet">
+  <link href="css/icons.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="css/materialize.css">
+  <title>Authentification</title>
+  <style>
+    body {
+      display: flex;
+      min-height: 100vh;
+      flex-direction: column;
+    }
+
+    main {
+      flex: 1 0 auto;
+    }
+
+    body {
+      background: #fff;
+    }
+
+    .input-field input[type=date]:focus + label,
+    .input-field input[type=text]:focus + label,
+    .input-field input[type=email]:focus + label,
+    .input-field input[type=password]:focus + label {
+      color: #e91e63;
+    }
+
+    .input-field input[type=date]:focus,
+    .input-field input[type=text]:focus,
+    .input-field input[type=email]:focus,
+    .input-field input[type=password]:focus {
+      border-bottom: 2px solid #e91e63;
+      box-shadow: none;
+    }
+
+    .container {
+      width: 100%;
+      max-width: None;
+      margin-top: 0px;
+      margin-bottom: 0px;
+      margin-left: 0px;
+      margin-right: 0px;
+    }
+
+    .icondock {
+      height: 80%;
+     }
+
+     .middle {
+      vertical-align: middle;
+      margin-right: 20px;
+     }
+
+     .action {
+        margin-bottom: 12px;
+     }
+
+     #log{height:100pt;overflow:auto}
+  </style>
+</head>
+
+<body>
+    <div id="id" style="display: none;">{{#info}}{{uuid}}{{/info}}</div>
+  <div class="section"></div>
+  <main>
+
+
+    <center><h1> {{#info}}{{name}}{{/info}}</h1></center>
+
+
+      <div class="container">
+          <ul class="collapsible">
+            <li>
+              <div class="collapsible-header"><i class="material-icons">info</i>Informations</div>
+              <div class="collapsible-body">
+                  <table>
+                    <thead>
+                      <tr>
+                          <th>Propriété</th>
+                          <th>Valeur</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                        {{#desc}}
+                          <tr>
+                            <td>{{field}}</td>
+                            <td>{{value}}</td>
+                          </tr>
+                        {{/desc}}
+                    </tbody>
+                  </table>
+              </div>
+            </li>
+            <li onclick="systemtabclick()">
+              <div class="collapsible-header" ><i class="material-icons">equalizer</i></span>Système</div>
+              <div class="collapsible-body" id="systemtab">
+                  <div class="row">
+                    <div id="systemdiv"></div>
+                    </div>
+            </li>
+            <li onclick="proctabclick()">
+              <div class="collapsible-header" ><i class="material-icons">settings</i></span>Processus</div>
+              <div class="collapsible-body" id="proctab">
+                  <div class="row">
+                    <div id="procdiv"></div>
+                    </div>
+            </li>
+            <li>
+              <div class="collapsible-header"><i class="material-icons">add</i>Actions</div>
+              <div class="collapsible-body">
+                  <div id="actiondiv"></div>
+              </div>
+            </li>
+            <li>
+              <div class="collapsible-header"><span class="icon-utilities-terminal-symbolic middle" onclick="on_terminal({{uuid}})"></span>Console</div>
+              <div class="collapsible-body">
+                  <div class="row">
+
+                       <div class="input-field col s12" id="log">
+
+                       </div>
+                       <div class="input-field col s12" >
+                            <input placeholder="Entrez une commande" id="input_command" type="text" class="validate">
+                            <label for="input_command">Entrez une commande</label>
+                        </div>
+                    </div>
+              </div>
+            </li>
+          </ul>
+
+
+
+
+
+       </div>
+
+  </main>
+
+  <script type="text/javascript" src="js/jquery.min.js"></script>
+  <script type="text/javascript" src="js/materialize.min.js"></script>
+  <script type="text/javascript" src="js/poste.js"></script>
+</body>
+
+</html>

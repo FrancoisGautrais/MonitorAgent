@@ -1,7 +1,9 @@
 import os
-from conf import Globals
+from conf import Conf
 from utils import Stack
-from .command import Command
+import sys
+import os
+from command.command import Command
 
 class Shell:
 
@@ -9,7 +11,7 @@ class Shell:
         self._env={ "PATH" : os.environ["PATH"] }
         self._agent=agent
         self._parent=parent
-        self._dir="C:\\" if Globals.isWindows() else "/"
+        self._dir=os.getcwd()
         self._history=[]
 
     def getAgent(self):
@@ -29,14 +31,14 @@ class Shell:
 
     def findInPath(self, d):
         if not "PATH" in self._env: return ""
-        if not Globals.isWindows():
+        if not Conf.isWindows():
             pp.replace(":", ";")
         pp=self._env["PATH"].split(";")
         for curr in pp:
             x=os.path.abspath(os.path.join( curr, d))
             if os.path.isfile(x):
                 return x
-            if Globals.isWindows() and os.path.isfile(x+".exe"):
+            if Conf.isWindows() and os.path.isfile(x+".exe"):
                 return x+".exe"
         return ""
 

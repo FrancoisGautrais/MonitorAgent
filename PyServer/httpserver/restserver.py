@@ -1,6 +1,7 @@
 from .httpserver import HTTPServer
 from .httprequest import HTTPRequest, HTTPResponse, testurl
 from .utils import Callback
+import os
 
 class RESTServer(HTTPServer):
 
@@ -9,73 +10,103 @@ class RESTServer(HTTPServer):
         self._handlers={}
         self._defaulthandler=None
         self.default(RESTServer._404, self)
+        self.static_dirs={}
 
+    """
+        Ajoute une route statique
+        :param baseUrl str Url pour acceder auc contenu
+        :param dir str Dossier local contenant les fichiers
+        :param authcb fct(req, res): Bool Callback pour déterminer si l'utilisateur est autorisé
+        :param needauthcb fct(req, res): Bool Callback pour déterminer si la requete nécessite une autorisation
+                        Par défaut à Faux
+    """
+    def static(self, baseUrl, dir, authcb=None, needauthcb=None):
+        dir=os.path.abspath(dir)
+        if dir[-1]=="/": dir=dir[:-1]
+        if baseUrl[-1]=="/": baseUrl=baseUrl[:-1]
+        self.static_dirs[baseUrl]=(dir, needauthcb, authcb)
 
-
-    def create(self, req : HTTPRequest, res : HTTPResponse):
-        res.end("Create "+str(req.restparams))
-
-    def delete(self, req : HTTPRequest, res : HTTPResponse):
-        res.end("delete")
-
-    def update(self, req : HTTPRequest, res : HTTPResponse):
-        res.end("update")
-
-
-
-    def route(self, methods, url, fct, obj=None, data=None):
-        if isinstance(methods, str): methods=[methods]
+    """
+        Ajoute une route pour gérer une requete REST
+        :param methods list ou str contenant la/les méthode(s) HTTP  concernés
+        :param urls list ou str urls la/les url(s) REST concernés
+                
+    """
+    def route(self, methods, urls, fct, obj=None, data=None):
+        if isinstance(urls, str): urls=[urls]
+        if isinstance(methods, str): methods = [methods]
         for method in methods:
             if not (method in self._handlers):
-                self._handlers[method.upper()]={}
-            self._handlers[method.upper()][url]=Callback(fct, obj, data)
+                self._handlers[method.upper()] = {}
+            for url in urls:
+                self._handlers[method.upper()][url] = Callback(fct, obj, data)
 
-    def default(self, fct, obj=None, data=None, methods=None ):
+    """
+        Ajoute une route par défaut (en général ou pour ne méhode)
+        :param fct fct handler
+        :param obj L'objet pour une méthode
+        :param data Données supplémentaires à fournir
+        :param methods (str ou list) La ou les méthodes HTTP à gérer ou None
+    """
+    def default(self, fct, obj=None, data=None, methods=None):
         if methods:
             self.route(methods, None, fct, obj, data)
         else:
-            self._defaulthandler=Callback(fct, obj, data)
+            self._defaulthandler = Callback(fct, obj, data)
 
-    def _404(self,req : HTTPRequest, res : HTTPResponse):
-        res.code=404
-        res.msg="Not Found"
-        res.end(req.path+" Not found")
+    def _404(self, req: HTTPRequest, res: HTTPResponse):
+        res.code = 404
+        res.msg = "Not Found"
+        res.content_type("text/plain")
+        res.end(req.path + " Not found")
 
+    """
+        Permet de router la requête
+    """
     def handlerequest(self, req, res):
-        m=req.method
-        u=req.path
-        if not m in self._handlers: return
+        m = req.method
+        u = req.path
 
-        d=self._handlers[m]
-        found=None
+        found = None
+        d={}
 
-        for url in d:
-            if url:
-                args=testurl(url, req.path)
-                if args!=None:
-                    found=d[url]
-                    req.restparams=args
+        # 1ere étape: Voir si la requete REST est enregistrée
+        if m in self._handlers:
+            d = self._handlers[m]
 
+            for url in d:
+                if url:
+                    args = testurl(url, req.path)
+                    if args != None:
+                        found = d[url]
+                        req.params = args
 
+            # si il y a une requete par défaut (par méthode)
+            if found == None:
+                if None in d: found = d[None]
 
-        if found==None:
-            if None in d: found=d[None]
+        # si ce n'est pas une requete REST enregistrée:
+        # --> On regarde dans les enregistrements static
+        if found == None:
+            p=req.path
+            for base in self.static_dirs:
+                if p.startswith(base):
+                    dir, needeauth, auth = self.static_dirs[base]
+                    p=p[len(base):]
+                    if len(p)==0: p="index.html"
+                    if p[0]=="/": p=p[1:]
+                    path=os.path.join(dir,p)
+                    if  (not auth) or (not needeauth) or (not needeauth.call((req, res))) or auth.call((req, res)):
+                        res.serve_file( path, base+"/"+p)
+                    return
 
-        if found==None and self._defaulthandler:
-            found=self._defaulthandler
+        # si il y a un handler par défaut général
+        if found == None and self._defaulthandler:
+            found = self._defaulthandler
 
         if found:
-            found.call( prependParams=(req, res))
-        """
-        if found:
-            fct, obj, data = found
-            if obj:
-                if data:
-                    fct(obj, req, res, data)
-                else:
-                    fct(obj, req, res)
-            else:
-                if data: fct(req, res, data)
-                else: fct(req, res)
+            found.call(prependParams=(req, res))
 
-        """
+
+
+

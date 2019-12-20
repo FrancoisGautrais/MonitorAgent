@@ -1,7 +1,7 @@
 import subprocess
 import os
 from agent.commandreturn import CommandReturn
-from conf import Globals
+from conf import Conf
 
 class Stack:
 
@@ -41,8 +41,7 @@ def execSystem(cmd, pipe=True,input=None):
     else:
         #x = subprocess.Popen(cmd)
         print(cmd)
-        if Globals.isWindows():
-            print(argsToString(cmd))
+        if Conf.isWindows():
             os.system(argsToString(cmd))
         else:
             pid=os.fork()
@@ -51,4 +50,18 @@ def execSystem(cmd, pipe=True,input=None):
             else:
                 os.execv(cmd[0], cmd)
 
-        return  CommandReturn(0)
+        return  CommandReturn( 0)
+
+import datetime
+
+def timestamp_to_time(s):
+    s%=24*3600
+    h=int(s%3600)
+    m=int( (s/60)%60)
+    sec=int( (s/3600))
+    micro=int( (s%1)*1000000)
+    return datetime.time(h,m,sec,micro)
+
+def time_to_timestamp(t):
+    return t.hour*3600+t.minute*60+t.second+t.microsecond/1000000
+

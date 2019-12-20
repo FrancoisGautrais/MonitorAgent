@@ -1,0 +1,37 @@
+
+  <ul class="collapsible">
+    <li>
+      <div class="collapsible-header"><i class="material-icons">message</i>Envoyer un message</div>
+      <div class="collapsible-body"><div class="row">
+            <div class="input-field col s12">
+              <input  id="act_print_title" type="text" class="validate">
+              <label for="act_print_title">Titre</label>
+            </div>
+             <div class="input-field col s12">
+              <textarea id="act_print_msg" class="materialize-textarea"></textarea>
+              <label for="act_print_msg">Message</label>
+            </div>
+            <div class="action">
+                <a class="btn waves-effect waves-light"
+                   onclick="send('print', [print_t.val(), print_msg.val()]); print_msg.val(''); print_t.val('')">Envoyer
+                    <i class="material-icons right">send</i></a>
+            </div>
+
+      </div></div>
+    </li>
+  </ul>
+<div class="action">  <a class="btn waves-effect waves-light" onclick="halt()">Arrêter
+                        <i class="material-icons right">send</i></a>
+                  </div>
+                  <div class="action">  <a class="btn waves-effect waves-light" onclick="reboot()">Redémarrer
+                        <i class="material-icons right">send</i></a>
+                  </div>
+  <script>
+      $('.collapsible').collapsible();
+      print_t=$('#act_print_title')
+      print_msg=$('#act_print_msg')
+      function on_print(t, b){
+
+      }
+  </script>
+
