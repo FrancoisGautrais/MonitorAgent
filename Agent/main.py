@@ -24,7 +24,13 @@ def doUpdate():
 #doUpdate()
 
 print(Conf.getAllversionInformation())
-client  = Agent("http://localhost:8080/")
+
+ip, port = "", 0
+with open("host") as f:
+    ip, port=f.read().split("\n")[0].split(":")
+    print("her", ip, port)
+
+client  = Agent("http://"+ip+":"+str(port)+"/")
 client.connect()
 while True:
     ret=client.wait()
