@@ -1,15 +1,15 @@
 import os
 import time
-from httpserver import socketwrapper
-from httpserver.httprequest import HTTPResponse, HTTPRequest
-from httpserver.restserver import RESTServer
+from http_server import socketwrapper
+from http_server.httprequest import HTTPResponse, HTTPRequest
+from http_server.restserver import RESTServer
 import errors
 import uuid
 from appdata import AppData
 import json
 from command.command import Command
 from client import Client
-from httpserver.utils import Callback
+from http_server.utils import Callback
 from servercommands.commandsloader import CommandReturn
 from scheduler import Task, Scheduler
 import pystache

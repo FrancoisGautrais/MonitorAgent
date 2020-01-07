@@ -2,7 +2,7 @@ from command.command import Command
 import time
 import uuid
 from threading import Lock
-from httpserver.httpserver import start_thread, Callback
+from http_server.httpserver import start_thread, Callback
 
 class Task:
 

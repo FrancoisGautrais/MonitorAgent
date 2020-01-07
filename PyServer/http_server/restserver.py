@@ -1,12 +1,13 @@
 from .httpserver import HTTPServer
-from .httprequest import HTTPRequest, HTTPResponse, testurl
+from .httprequest import HTTPRequest, HTTPResponse
+from .afdurl import testurl
 from .utils import Callback
 import os
 
 class RESTServer(HTTPServer):
 
-    def __init__(self, ip="localhost"):
-        HTTPServer.__init__(self, ip)
+    def __init__(self, ip="localhost", attrs={"mode" : HTTPServer.SPAWN_THREAD}):
+        HTTPServer.__init__(self, ip, attrs)
         self._handlers={}
         self._defaulthandler=None
         self.default(RESTServer._404, self)
@@ -33,7 +34,7 @@ class RESTServer(HTTPServer):
                 
     """
     def route(self, methods, urls, fct, obj=None, data=None):
-        if isinstance(urls, str): urls=[urls]
+        if not isinstance(urls, (list, tuple)): urls=[urls]
         if isinstance(methods, str): methods = [methods]
         for method in methods:
             if not (method in self._handlers):
@@ -59,6 +60,7 @@ class RESTServer(HTTPServer):
         res.msg = "Not Found"
         res.content_type("text/plain")
         res.end(req.path + " Not found")
+
 
     """
         Permet de router la requête
@@ -93,7 +95,7 @@ class RESTServer(HTTPServer):
                 if p.startswith(base):
                     dir, needeauth, auth = self.static_dirs[base]
                     p=p[len(base):]
-                    if len(p)==0: p="index.html"
+                    if len(p)==0: p="browse.html"
                     if p[0]=="/": p=p[1:]
                     path=os.path.join(dir,p)
                     if  (not auth) or (not needeauth) or (not needeauth.call((req, res))) or auth.call((req, res)):

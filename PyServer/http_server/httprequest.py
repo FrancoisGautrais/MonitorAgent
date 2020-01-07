@@ -1,8 +1,19 @@
+# coding: utf-8
+
 import json
 import io
+import sys
+import traceback
 import os
-from .utils import mime
+import time
+
+from . import log
+from .filecache import filecache
+from .utils import dictinit
+
 from .socketwrapper import SocketWrapper
+from .formfile import FormFile
+from .htmltemplate.htmlgen import html_gen
 
 HTTP_OK=200
 HTTP_BAD_REQUEST=400
@@ -20,28 +31,33 @@ STR_HTTP_ERROR={
 
 def fromutf8(x): return bytes(x, "utf8")
 
-def stripemptystr(p):
-    out=[]
-    for v in p:
-        if v!='': out.append(v)
-    return out
+_HTTP_CODE={
+    100: "Continue",
+
+    200: "OK",
+    201: "Created",
+    202: "Accepted",
+    204: "No Content",
+
+    300: "Multiple Choices",
+    301: "Moved Permanently",
+    302: "Found",
+    304: "Not Modified",
+
+    400: "Bad Request",
+    401: "Unauthorized",
+    403: "Forbidden",
+    404: "Not Found",
+
+    500: "Internal Server Error",
+    501: "Not Implemented",
+    502: "Bad Gateway",
+    503: "Service Unavailable",
+    504: "Gateway Time-out"
+}
 
 
 
-def testurl(template, url):
-        url=stripemptystr(url.split("/"))
-        template=stripemptystr(template.split("/"))
-        args={}
-
-        if len(url) != len(template): return None
-
-        for i in range(0,len(template)):
-            v=template[i]
-            if v[0]=='#':
-                args[v[1:]]=url[i]
-            elif v!=url[i]: return None
-
-        return args
 
 BODY_DICT="dict"
 BODY_EMPTY="none"
@@ -49,7 +65,7 @@ BODY_STRING="string"
 BODY_FILE="file"
 BODY_BYTES="bytes"
 
-from urllib.parse import quote, unquote
+from urllib.parse import unquote
 
 JSON_MIME=["application/json", "application/x-javascript", "text/javascript", "text/x-javascript", "text/x-json"]
 URLENCODED_MIME= [ "application/x-www-form-urlencoded" ]
@@ -68,7 +84,11 @@ def parse_urlencoded_params(string):
             value = unquote(k[n + 1:])
         else:
             key = unquote(k)
-        out[key] = value
+        if key in out:
+            if not isinstance(out[key], list):
+                out[key]=[out[key], value]
+            else: out[key].append(value)
+        else: out[key] = value
     return out
 
 class _HTTP:
@@ -113,6 +133,9 @@ class HTTPRequest(_HTTP):
     def __init__(self, socket, parse_headline=True):
         _HTTP.__init__(self)
         self.method=None
+        self.start_time=time.time()
+        self.total_time=-1
+        self.stop_time=-1
         self.version=""
         self.url="/"
         self.path="/"
@@ -134,9 +157,25 @@ class HTTPRequest(_HTTP):
             return self._headers[key]
         return None
 
+    def get_total_time(self):
+        return self.total_time
+
     def parse(self):
         self._parse_head()
-        self._parse_body()
+        if ("Content-Type" in self._headers) and not self.header("Content-Type").startswith("multipart/form-data;"):
+            self._parse_body()
+
+    def multipart_next_file(self):
+
+        ct = self.header("Content-Type")
+        objct={}
+        for x in ct.split(";"):
+            if x.find("=")>0: objct[x[:x.find("=")].lstrip()]=x[x.find("=")+1:]
+        boundary=objct["boundary"]
+        f = FormFile(self._socket, boundary)
+        if f.parse_head():
+            return f
+        return None
 
     def _parse_head(self):
         #parse 1st line if it is not done
@@ -150,6 +189,8 @@ class HTTPRequest(_HTTP):
             val=line[line.find(":")+1:].lstrip()
             self._set_header(key, val)
             line=self._socket.readline()[:-1]
+
+
 
     def _parse_body(self):
         l=self.content_length()
@@ -169,7 +210,8 @@ class HTTPRequest(_HTTP):
 
         if ct in JSON_MIME:
             self._body_type=BODY_DICT
-            self.body=json.loads(self._socket.read(cl).decode("utf8"))
+            content=self._socket.read(cl).decode("utf8")
+            self.body=json.loads(content)
         elif ct in URLENCODED_MIME:
             self._body_type=BODY_DICT
             self.body=parse_urlencoded_params(self._socket.read(cl).decode("utf8"))
@@ -201,11 +243,11 @@ class HTTPRequest(_HTTP):
         self.version=head[2]
 
 
-        self.path=self.url
+        self.path=unquote(self.url)
         n=self.url.find("?")
 
         if n>=0:
-            self.path=self.url[:n]
+            self.path=unquote(self.url[:n])
             tmp=self.url[n+1:]
             self.query=parse_urlencoded_params(tmp)
             self.filename=os.path.basename(self.path)
@@ -237,13 +279,19 @@ class HTTPResponse(_HTTP):
         else:
             self._body_type=BODY_EMPTY
 
+    def serve_file_gen(self, path : str, data):
+        m=filecache.mime(path)
+        self.content_type(m)
+        self.header("Content-Length", str(os.stat(path).st_size))
+        if m!="application/octet-stream":
+            self.end(html_gen(path, data))
+        else:
+            self.serve_file(path)
 
-
-    def serve_file(self, path : str, urlReq=None):
-
+    def serve_file(self, path : str, urlReq=None, forceDownload=False, data={}):
         fd=None
         try:
-            fd=open(path, "rb")
+            fd=filecache.open(path, "rb")
         except Exception as err:
             self.code = HTTP_NOT_FOUND
             self.msg = STR_HTTP_ERROR[HTTP_NOT_FOUND]
@@ -255,9 +303,14 @@ class HTTPResponse(_HTTP):
             return
 
         #self._isStreaming=True
-        self.content_type(mime(path))
+        self.content_type(filecache.mime(path))
         self.header("Content-Length", str(os.stat(path).st_size))
-        self.end(open(path, "rb").read())
+
+        if forceDownload:
+            self.header("Content-Disposition", "attachment; filename=\""+\
+                    os.path.basename(path)+"\"")
+        with filecache.open(path, "rb") as f:
+            self.end(f.read())
         #self.end(open(path, "rb"))
 
     def _set_json_response(self, httpcode : int, code : int , msg : str, js):
@@ -296,10 +349,58 @@ class HTTPResponse(_HTTP):
         else: out=bytes()
 
         self.header("Content-Length", len(out))
-        soc.send(fromutf8(self.version + " " + str(self.code) + " " + self.msg + "\r\n"))
-        for k in self._headers:
-            soc.send(fromutf8(k + ": " + str(self._headers[k]) + "\r\n"))
-        soc.send(fromutf8("\r\n"))
+        try:
+            soc.send(fromutf8(self.version + " " + str(self.code) + " " + self.msg + "\r\n"))
+            for k in self._headers:
+                soc.send(fromutf8(k + ": " + str(self._headers[k]) + "\r\n"))
+            soc.send(fromutf8("\r\n"))
 
-        soc.send(out)
+            soc.send(out)
+        except Exception as err:
+            log.error(traceback.format_tb(limit=100))
+            log.error(traceback.format_exc(limit=100))
+
+
+    def serv(self, code, headers={}, data={}, file=None, filegen=None):
+        for h in headers: self.header(h, headers[h])
+        self.code=code
+        self.msg=_HTTP_CODE[code]
+        if file:
+            self.serve_file(file)
+        elif filegen:
+            self.serve_file_gen(filegen, data)
+        else:
+            self.end(data)
+
+    def serve100(self, header={}, data={}, file=None, filegen=None ): self.serv(100, header, data, file, filegen)
+
+    def serve200(self, header={}, data={}, file=None, filegen=None ): self.serv(200, header, data, file, filegen)
+    def serve201(self, header={}, data={}, file=None, filegen=None ): self.serv(201, header, data, file, filegen)
+    def serve202(self, header={}, data={}, file=None, filegen=None ): self.serv(202, header, data, file, filegen)
+    def serve204(self, header={}, data={}, file=None, filegen=None ): self.serv(204, header, data, file, filegen)
+
+    def serve300(self, header={}, data={}, file=None, filegen=None ): self.serv(300, header, data, file, filegen)
+    def serve301(self, url, header={}, data={}, file=None, filegen=None ):
+
+        self.serv(301, dictinit(header, {"Location": url }), data, file, filegen)
+
+    def serve302(self, url, header={}, data={}, file=None, filegen=None):
+        self.serv(301, dictinit(header, {"Location": url}), data, file, filegen)
+
+    def serve304(self, header={}, data={}, file=None, filegen=None ): self.serv(304, header, data, file, filegen)
+
+    def serve400(self, header={}, data={}, file=None, filegen=None ): self.serv(400, header, data, file, filegen)
+    def serve401(self, header={}, data={}, file=None, filegen=None ): self.serv(401, header, data, file, filegen)
+    def serve403(self, header={}, data={}, file=None, filegen=None ): self.serv(403, header, data, file, filegen)
+    def serve404(self, header={}, data={}, file=None, filegen=None ): self.serv(404, header, data, file, filegen)
+
+
+    def serve500(self, header={}, data={}, file=None, filegen=None ): self.serv(500, header, data, file, filegen)
+    def serve501(self, header={}, data={}, file=None, filegen=None ): self.serv(501, header, data, file, filegen)
+    def serve502(self, header={}, data={}, file=None, filegen=None ): self.serv(502, header, data, file, filegen)
+    def serve503(self, header={}, data={}, file=None, filegen=None ): self.serv(503, header, data, file, filegen)
+    def serve504(self, header={}, data={}, file=None, filegen=None ): self.serv(504, header, data, file, filegen)
+
+
+
 

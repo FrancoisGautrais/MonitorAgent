@@ -2,9 +2,10 @@
 import sys
 sys.path.insert(0, "../Common")
 
-from httpserver import socketwrapper
-from httpserver.httprequest import HTTPResponse
-from httpserver.restserver import RESTServer
+from http_server import socketwrapper
+from http_server.filecache import filecache
+from http_server.httprequest import HTTPResponse
+from http_server.restserver import RESTServer
 from appserver import AppServer, AppServer2
 from servercommands.commandsloader import call
 from conf import Conf
@@ -43,6 +44,8 @@ while True:
     x.do()
 
 """
+
+filecache.init()
 server= AppServer("localhost")
 #server.route("GET", "/create/#x/#y/z", RESTServer.create, server)
 #server.route("GET", "/delete", socketwrapper.HTTPServer.delete,server )
