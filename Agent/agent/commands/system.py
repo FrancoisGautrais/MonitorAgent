@@ -64,7 +64,7 @@ def cmd_monitor(self : Shell, args):
         "memory": {
             "total": m.total,
             "free": m.free,
-            "active": m.active,
+            "active": 0 if Conf.isWindows() else m.active,
             "inactive": 0 if Conf.isWindows() else m.inactive,
             "buffers":  0 if Conf.isWindows() else m.inactive,
             "cached":  0 if Conf.isWindows() else m.inactive
