@@ -2,7 +2,7 @@ import os
 import time
 from http_server import socketwrapper
 from http_server.httprequest import HTTPResponse, HTTPRequest
-from http_server.restserver import RESTServer
+from http_server.restserver import RESTServer, HTTPServer
 import errors
 import uuid
 from appdata import AppData
@@ -48,7 +48,7 @@ class AppServer2(RESTServer):
 class AppServer(RESTServer):
 
     def __init__(self, ip="localhost"):
-        RESTServer.__init__(self, ip)
+        RESTServer.__init__(self, ip, HTTPServer.SPAWN_THREAD)
         self._clients=AppData.load()
         self._connected={}
         self._admins={}

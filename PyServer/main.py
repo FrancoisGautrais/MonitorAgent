@@ -46,7 +46,7 @@ while True:
 """
 
 filecache.init()
-server= AppServer("localhost")
+server= AppServer("")
 #server.route("GET", "/create/#x/#y/z", RESTServer.create, server)
 #server.route("GET", "/delete", socketwrapper.HTTPServer.delete,server )
 #server.route("GET", "/update", socketwrapper.HTTPServer.update,server )
