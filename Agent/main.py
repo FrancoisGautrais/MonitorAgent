@@ -1,7 +1,7 @@
 
 import sys
 sys.path.insert(0, "../Common")
-
+import os
 import requests
 from conf import Conf
 from remove import clean
@@ -31,10 +31,17 @@ with open("host") as f:
     print("her", ip, port)
 
 client  = Agent("http://"+ip+":"+str(port)+"/")
-client.connect()
+
 while True:
-    ret=client.wait()
-    client.sendResponse(ret)
+    os.system("git pull")
+    try:
+        client.connect()
+        while True:
+            ret=client.wait()
+            client.sendResponse(ret)
+    except:
+        time.sleep(5)
+
 
 """
 for i in range(0,100000):
